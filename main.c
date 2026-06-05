@@ -62,6 +62,18 @@ float AvgInfo(Subject *subject, int nbSubjects) {
     if (Ccount > 0){
     AvgC = sumC / Ccount;
     }
-    
+
     return (AvgI * ICOEF) + (AvgC * CCOEF);
+}
+
+float AvgGlobal(float avgInfo, float avgCG, float avgCBE){
+    const int INFCOEF = 3;
+    const int ECGCOEF = 2;
+    const int CBECOEF = 1;
+    const float TOTALCOEF = INFCOEF + ECGCOEF + CBECOEF;
+    float totalPoints = (avgInfo * INFCOEF) + (avgCG * ECGCOEF) + (avgCBE * CBECOEF);
+    if (TOTALCOEF == 0){
+       return 0;
+    }
+    return totalPoints / TOTALCOEF;
 }
