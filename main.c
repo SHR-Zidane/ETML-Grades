@@ -13,6 +13,7 @@ typedef struct {
     char *name;
     Grade *grades;
     int size;
+    char type;
 } Subject;
 
 float Avg(Subject *subject) {
@@ -33,4 +34,34 @@ float Avg(Subject *subject) {
     }
     if (sumC == 0) return 0;
     return sumG / sumC;
+}
+
+float AvgInfo(Subject *subject, int nbSubjects) {
+    float sumI = 0;
+    int Icount = 0;
+    float AvgI = 0;
+    float sumC = 0;
+    int Ccount = 0;
+    float AvgC = 0;
+    const float ICOEF = 0.8;
+    const float CCOEF = 0.2;
+
+    for(int i = 0; i < nbSubjects; i++){
+        if ((subject + i)->type == 'I') {
+        sumI += Avg(&subject[i]);
+        Icount++;
+        }
+        else {
+        sumC += Avg(&subject[i]);
+        Ccount++;
+        }
+    }
+    if (Icount > 0){
+        AvgI = sumI / Icount;
+    }
+    if (Ccount > 0){
+    AvgC = sumC / Ccount;
+    }
+    
+    return (AvgI * ICOEF) + (AvgC * CCOEF);
 }
