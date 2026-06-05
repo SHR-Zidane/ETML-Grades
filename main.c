@@ -1,30 +1,36 @@
-#include <raylib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 
-int main() {
+typedef struct {
+    float value;
+    bool has_coef;
+    float coef;
+} Grade;
 
-    const int ScreenWidth = 800;
-    const int ScreenHeight = 450;
+typedef struct {
+    char *name;
+    Grade *grades;
+    int size;
+} Subject;
 
-    InitWindow(ScreenWidth, ScreenHeight, "Test");
-
-    Vector2 ballPosition = { ScreenWidth / 2.0f, ScreenHeight / 2.0f };
-
-    SetTargetFPS(60);
-
-    while (!WindowShouldClose()) {
-
-        if (IsKeyDown(KEY_RIGHT)) ballPosition.x += 1.0f;
-        if (IsKeyDown(KEY_LEFT)) ballPosition.x -= 1.0f;
-        if (IsKeyDown(KEY_UP)) ballPosition.y -= 1.0f;
-        if (IsKeyDown(KEY_DOWN)) ballPosition.y += 1.0f;
-
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-        DrawText
-        DrawCircleV(ballPosition, 50, RED);
-        EndDrawing();
+float Avg(Subject *subject) {
+    if (subject == NULL || subject->size <= 0) {
+        return 0;
     }
-
-    CloseWindow();
-    return 0;
+    float sumG = 0;
+    float sumC = 0;
+    for (int i = 0; i < subject->size; i++) {
+        if (subject->grades[i].has_coef) {
+            sumG += subject->grades[i].value * subject->grades[i].coef;
+            sumC += subject->grades[i].coef;
+        }
+        else {
+            sumG += subject->grades[i].value;
+            sumC += 1;
+        }
+    }
+    if (sumC == 0) return 0;
+    return sumG / sumC;
 }
