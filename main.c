@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,4 +77,18 @@ float AvgGlobal(float avgInfo, float avgCG, float avgCBE){
        return 0;
     }
     return totalPoints / TOTALCOEF;
+}
+
+float round05(float value){
+    if (value == 0){
+        return 0;
+    }
+    return roundf(value * 2) / 2.0f;
+}
+float round01(float value){
+    if (value == 0){
+        return 0;
+    }
+    value = roundf(value * 10.0f) / 10.0f;
+    return value;
 }
