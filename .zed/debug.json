@@ -1,0 +1,14 @@
+[
+  {
+    "label": "Compiler et Déboguer",
+    "type": "executable",
+    "request": "launch",
+    "adapter": "CodeLLDB",
+    "build": {
+      "command": "C:/Users/TON_NOM/Desktop/mingw64/bin/gcc.exe",
+      "args": ["-g", "main.c", "-o", "app.exe"],
+      "cwd": "$ZED_WORKTREE_ROOT",
+    },
+    "program": "$ZED_WORKTREE_ROOT/app.exe",
+  },
+]
