@@ -19,7 +19,7 @@ float Avg(Subject *subject) {
         }
     }
     if (sumC == 0) return 0;
-    return sumG / sumC;
+    return round05(sumG / sumC);
 }
 
 float AvgInfo(Subject *subject, int nbSubjects) {

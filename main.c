@@ -3,12 +3,12 @@
 
 int main(){
     Grade C295[] = {
-        {3.5f, true, 4.0f},
-        {1.0f, true, 6.0f}
+        {2.0f, true, 4.0f},
+        {3.0f, true, 6.0f}
     };
     Grade I426[] = {
         {4.0f, false, 0.0f},
-        {4.5f, false, 0.0f}
+        {4.0f, false, 0.0f}
     };
 
     Subject MoyenneInf[] = {
