@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include "glib-object.h"
+#include "glib.h"
 #include "glibconfig.h"
 #include "report.h"
 
@@ -33,6 +34,19 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
 
 void on_addGrade(GtkWidget *button, gpointer data){
     GradeForm *form = data;
+    const gchar *Name = gtk_entry_get_text(GTK_ENTRY(form->entryName));
+    const gchar *Grade = gtk_entry_get_text(GTK_ENTRY(form->entryGrade));
+    gchar *Nature = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
+    gboolean isChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(form->checkWeight));
+
+    if (isChecked) {
+        const gchar *Weight = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
+        g_print("Matière: %s | Note: %s | Nature: %s | Pondération: %s%%\n",Name, Grade, Nature, Weight);
+    }
+    else {
+        g_print("Matière: %s | Note: %s | Nature: %s\n", Name, Grade, Nature);
+    }
+    g_free(Nature);
 }
 
 void create_main_window(int argc, char *argv[]) {
@@ -124,6 +138,7 @@ void create_main_window(int argc, char *argv[]) {
     gtk_widget_set_no_show_all(Sem1Form.entryWeight, TRUE);
     g_signal_connect(Sem1Form.checkWeight, "toggled", G_CALLBACK(on_weightToggled), Sem1Form.entryWeight);
     gtk_box_pack_start(GTK_BOX(hbox_add_grade), btn_add, FALSE, FALSE, 0);
+    g_signal_connect(btn_add, "clicked", G_CALLBACK(on_addGrade), &Sem1Form);
     scroll_sem1 = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll_sem1), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
@@ -131,11 +146,10 @@ void create_main_window(int argc, char *argv[]) {
 
     gtk_container_add(GTK_CONTAINER(scroll_sem1), Sem1Form.vboxList);
 
-    gtk_box_pack_start(GTK_BOX(vbox_sem1), scroll_sem1, TRUE, TRUE, 0);
-
     // Section Semestre 1
     gtk_box_pack_start(GTK_BOX(vbox_sem1), gtk_label_new("Semester 1"), FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox_sem1), hbox_add_grade, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox_sem1), scroll_sem1, TRUE, TRUE, 0);
     // Section Semestre 2
     gtk_box_pack_start(GTK_BOX(vbox_sem2), gtk_label_new("Semester 2"), FALSE, FALSE, 0);
     // Section Moyenne Annuel
