@@ -38,14 +38,23 @@ void on_addGrade(GtkWidget *button, gpointer data){
     const gchar *Grade = gtk_entry_get_text(GTK_ENTRY(form->entryGrade));
     gchar *Nature = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
     gboolean isChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(form->checkWeight));
+    GtkWidget *hbox_Grade;
 
+    const gchar *Weight = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
+    hbox_Grade = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
+    gtk_box_pack_start(GTK_BOX(form->vboxList), hbox_Grade, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Name), FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Nature), FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Grade), FALSE, FALSE, 0);
     if (isChecked) {
-        const gchar *Weight = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
-        g_print("Matière: %s | Note: %s | Nature: %s | Pondération: %s%%\n",Name, Grade, Nature, Weight);
+        gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Weight), FALSE, FALSE, 0);
     }
-    else {
-        g_print("Matière: %s | Note: %s | Nature: %s\n", Name, Grade, Nature);
-    }
+    gtk_widget_show_all(hbox_Grade);
+    gtk_entry_set_text(GTK_ENTRY(form->entryName), "");
+    gtk_entry_set_text(GTK_ENTRY(form->entryGrade), "");
+    gtk_entry_set_text(GTK_ENTRY(form->entryWeight), "");
+    gtk_combo_box_set_active(GTK_COMBO_BOX(form->combo_nature), 0);
+    gtk_toggle_button_set_active(form->checkWeight, FALSE);
     g_free(Nature);
 }
 
@@ -117,6 +126,7 @@ void create_main_window(int argc, char *argv[]) {
     gtk_entry_set_placeholder_text(GTK_ENTRY(Sem1Form.entryGrade), "Note");
     gtk_entry_set_placeholder_text(GTK_ENTRY(Sem1Form.entryWeight), "%");
 
+    gtk_entry_set_width_chars(GTK_ENTRY(Sem1Form.entryName), 10);
     gtk_entry_set_width_chars(GTK_ENTRY(Sem1Form.entryWeight), 4);
 
     hbox_add_grade = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
