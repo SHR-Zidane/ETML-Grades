@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "report.h"
 
 float Avg(Subject *subject) {
@@ -76,4 +77,20 @@ float round01(float value){
     }
     value = roundf(value * 10.0f) / 10.0f;
     return value;
+}
+
+// Link GUI
+
+void addGrade(Subject *subject, Grade grade) {
+    int oldSize = subject->size;
+    int newSize = oldSize + 1;
+    Grade *temp;
+    temp = realloc(subject->grades, newSize * sizeof(Grade));
+    if (temp == NULL) {
+        fprintf(stderr,"Error, memory allocation failed");
+        return;
+    }
+    subject->grades = temp;
+    subject->grades[oldSize] = grade;
+    subject->size++;
 }
