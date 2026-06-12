@@ -25,7 +25,7 @@ Gestionnaire de Notes pour les apprentis de l'etml (section informatique notamme
 4. Compilez le projet :
    ```bash
    cd ETML-Grades
-   clang main.c report.c -o ETML-Grades `pkg-config --cflags --libs gtk+-3.0`
+   clang *.c -o ETML-Grades `pkg-config --cflags --libs gtk+-3.0`
    ```
 5. Exécutez le programme :
    ```bash
