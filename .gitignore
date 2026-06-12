@@ -65,7 +65,18 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+# CMake build directories (Ninja, Make, etc.)
+build/
+cmake-build-*/
+out/
+Debug/
+Release/
 
+# Ninja files
+build.ninja
+rules.ninja
+.ninja_deps
+.ninja_log
 # CLion
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
