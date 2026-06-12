@@ -54,7 +54,7 @@ void on_addGrade(GtkWidget *button, gpointer data){
     gtk_entry_set_text(GTK_ENTRY(form->entryGrade), "");
     gtk_entry_set_text(GTK_ENTRY(form->entryWeight), "");
     gtk_combo_box_set_active(GTK_COMBO_BOX(form->combo_nature), 0);
-    gtk_toggle_button_set_active(form->checkWeight, FALSE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(form->checkWeight), FALSE);
     g_free(Nature);
 }
 
