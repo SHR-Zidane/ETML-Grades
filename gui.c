@@ -39,8 +39,10 @@ void on_addGrade(GtkWidget *button, gpointer data){
     gchar *Nature = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
     gboolean isChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(form->checkWeight));
     GtkWidget *hbox_Grade;
-
-    const gchar *Weight = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
+    const gchar *Weight = "";
+    if (isChecked) {
+        Weight = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
+    }
     hbox_Grade = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
     gtk_box_pack_start(GTK_BOX(form->vboxList), hbox_Grade, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Name), FALSE, FALSE, 0);
@@ -48,6 +50,9 @@ void on_addGrade(GtkWidget *button, gpointer data){
     gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Grade), FALSE, FALSE, 0);
     if (isChecked) {
         gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Weight), FALSE, FALSE, 0);
+    }
+    else {
+        gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new("-"), FALSE, FALSE, 0);
     }
     gtk_widget_show_all(hbox_Grade);
     gtk_entry_set_text(GTK_ENTRY(form->entryName), "");
