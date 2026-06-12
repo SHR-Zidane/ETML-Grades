@@ -81,7 +81,7 @@ void create_main_window(int argc, char *argv[]) {
     gtk_window_set_default_size(GTK_WINDOW(window), 1440, 1024);
     g_signal_connect(window, "destroy", G_CALLBACK(on_destroy), NULL);
 
-    icon = gdk_pixbuf_new_from_file("favicon.ico", NULL);
+    icon = gdk_pixbuf_new_from_file("./img/favicon.ico", NULL);
     if (icon != NULL) {
         gtk_window_set_icon(GTK_WINDOW(window), icon);
 
@@ -94,7 +94,7 @@ void create_main_window(int argc, char *argv[]) {
 
     hbox_header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 20);
 
-    logo_image = gtk_image_new_from_file("ETML-Grades.png");
+    logo_image = gtk_image_new_from_file("./img/ETML-Grades.png");
     // déclaration menu déroulant
     combo_year = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo_year), "Année 1");
