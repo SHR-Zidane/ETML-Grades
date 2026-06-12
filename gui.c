@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <stdlib.h>
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include "glib-object.h"
 #include "glib.h"
@@ -34,33 +35,24 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
 
 void on_addGrade(GtkWidget *button, gpointer data){
     GradeForm *form = data;
-    const gchar *Name = gtk_entry_get_text(GTK_ENTRY(form->entryName));
-    const gchar *Grade = gtk_entry_get_text(GTK_ENTRY(form->entryGrade));
-    gchar *Nature = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
+    const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
+    Subject *subject = getSubjectByName(type);
+    g_free(type);
+    Grade g;
+    const gchar *gradeText = gtk_entry_get_text(GTK_ENTRY(form->entryGrade));
+    g.value = atof(gradeText);
     gboolean isChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(form->checkWeight));
-    GtkWidget *hbox_Grade;
-    const gchar *Weight = "";
-    if (isChecked) {
-        Weight = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
-    }
-    hbox_Grade = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
-    gtk_box_pack_start(GTK_BOX(form->vboxList), hbox_Grade, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Name), FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Nature), FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Grade), FALSE, FALSE, 0);
-    if (isChecked) {
-        gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new(Weight), FALSE, FALSE, 0);
-    }
-    else {
-        gtk_box_pack_start(GTK_BOX(hbox_Grade), gtk_label_new("-"), FALSE, FALSE, 0);
-    }
-    gtk_widget_show_all(hbox_Grade);
-    gtk_entry_set_text(GTK_ENTRY(form->entryName), "");
-    gtk_entry_set_text(GTK_ENTRY(form->entryGrade), "");
-    gtk_entry_set_text(GTK_ENTRY(form->entryWeight), "");
-    gtk_combo_box_set_active(GTK_COMBO_BOX(form->combo_nature), 0);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(form->checkWeight), FALSE);
-    g_free(Nature);
+
+        g.has_coef = isChecked;
+
+        if (isChecked) {
+            const gchar *weightText = gtk_entry_get_text(GTK_ENTRY(form->entryWeight));
+            g.coef = atof(weightText);
+        } else {
+            g.coef = 1.0f;
+        }
+
+    addGrade(subject, g);
 }
 
 void create_main_window(int argc, char *argv[]) {
@@ -138,7 +130,7 @@ void create_main_window(int argc, char *argv[]) {
 
     Sem1Form.combo_nature = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "C");
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "I");
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "infoI");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "Maths");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "Anglais");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "ECG");
