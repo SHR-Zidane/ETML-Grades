@@ -2,12 +2,13 @@
 Gestionnaire de Notes pour les apprentis de l'etml (section informatique notamment)
 
 ## Technologies utilisées
+- MSYS2 (Windows)
 - Le langage C
 - La bibliothèque GTK3
 - Git
-- Clang ou gcc
+- Ninja
+- Clang (UCRT64 toolchain)
 - Cmake
-- UCRT64 / mingw64 pour la compilation (windows)
 
 ## Installation
 1. Clonez le dépôt : `git clone https://github.com/SHR-Zidane/ETML-Grades`
@@ -15,7 +16,11 @@ Gestionnaire de Notes pour les apprentis de l'etml (section informatique notamme
 3. Installez les dépendances :
    **Windows** : Ouvrez le terminal **MSYS2 UCRT64** et installez le compilateur et GTK3 : 
    ```bash
-   pacman -S mingw-w64-ucrt-x86_64-clang mingw-w64-ucrt-x86_64-gtk3 pkg-config make
+   pacman -Syu
+   pacman -S mingw-w64-ucrt-x86_64-clang \
+              mingw-w64-ucrt-x86_64-cmake \
+              mingw-w64-ucrt-x86_64-ninja \
+              mingw-w64-ucrt-x86_64-gtk3
    ```
    **Linux** : Ouvrez simplement votre terminal et lancez ces commandes :
    ```bash
@@ -25,11 +30,16 @@ Gestionnaire de Notes pour les apprentis de l'etml (section informatique notamme
 4. Compilez le projet :
    ```bash
    cd ETML-Grades
-   clang *.c -o ETML-Grades `pkg-config --cflags --libs gtk+-3.0`
+   cmake -B build -S . -G "Ninja" \
+     -DCMAKE_C_COMPILER=clang \
+     -DCMAKE_CXX_COMPILER=clang++
+   
+   cmake --build build
    ```
 5. Exécutez le programme :
    ```bash
-   ./ETML-Grades
+   ./build/programme
    ```
 
+à partir de là dès que vous voulez compiler le projet, vous pouvez simplement exécuter `cmake --build build`.
 ## Utilisation (Work in progress)
