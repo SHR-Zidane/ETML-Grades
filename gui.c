@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "gdk-pixbuf/gdk-pixbuf.h"
 #include "glib-object.h"
@@ -53,6 +54,30 @@ void on_addGrade(GtkWidget *button, gpointer data){
         }
 
     addGrade(subject, g);
+}
+
+void refreshUI(Subject *subject, GtkWidget *widget, GtkWidget *container){
+    GList *ChildList = gtk_container_get_children(GTK_CONTAINER(container));
+    GList *ptr = ChildList;
+    while (ptr != NULL){
+        gtk_widget_destroy(ptr->data);
+        ptr = ptr->next;
+    }
+    g_list_free(ChildList);
+
+    // Reconstruction
+    for (int i = 0; i < subject->size; i++){
+        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
+        const gchar *name = subject->name;
+        const gchar *value = g_strdup_printf("%f", subject->grades[i].value);
+        const gchar *coef = g_strdup_printf("%f", subject->grades[i].coef);
+
+        gtk_label_new(name);
+        gtk_label_new(value);
+        g_free(value);
+        gtk_label_new(coef);
+        g_free(coef);
+    }
 }
 
 void create_main_window(int argc, char *argv[]) {
