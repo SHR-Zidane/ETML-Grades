@@ -11,6 +11,7 @@ pkg_check_modules(GTK REQUIRED gtk+-3.0)
 add_executable(programme
     main.c
     gui.c
+    data.c
     report.c
     report.h
 )

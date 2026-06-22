@@ -34,9 +34,45 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
     }
 }
 
+void refreshUI(Subject *subject, GtkWidget *container){
+    GList *ChildList = gtk_container_get_children(GTK_CONTAINER(container));
+    GList *ptr = ChildList;
+    while (ptr != NULL){
+        gtk_widget_destroy(ptr->data);
+        ptr = ptr->next;
+    }
+    g_list_free(ChildList);
+
+    // Reconstruction
+    for (int i = 0; i < subject->size; i++){
+        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
+        const gchar *name = subject->name;
+        gchar *value = g_strdup_printf("%0.1f", subject->grades[i].value);
+        gchar *coef = g_strdup_printf("%0.1f", subject->grades[i].coef);
+
+        GtkWidget *labelName;
+        GtkWidget *labelValue;
+        GtkWidget *labelCoef;
+
+        printf("name = %s\n", name);
+
+        labelName = gtk_label_new(name);
+        gtk_box_pack_start(GTK_BOX(row), labelName, FALSE, FALSE, 15);
+        labelValue = gtk_label_new(value);
+        gtk_box_pack_start(GTK_BOX(row), labelValue, FALSE, FALSE, 15);
+        g_free(value);
+        labelCoef = gtk_label_new(coef);
+        gtk_box_pack_start(GTK_BOX(row), labelCoef, FALSE, FALSE, 15);
+        g_free(coef);
+
+        gtk_container_add(GTK_CONTAINER(container), row);
+    }
+    gtk_widget_show_all(container);
+}
+
 void on_addGrade(GtkWidget *button, gpointer data){
     GradeForm *form = data;
-    const gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
+    gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
     Subject *subject = getSubjectByName(type);
     g_free(type);
     Grade g;
@@ -54,31 +90,11 @@ void on_addGrade(GtkWidget *button, gpointer data){
         }
 
     addGrade(subject, g);
+    refreshUI(subject, form->vboxList);
 }
 
-void refreshUI(Subject *subject, GtkWidget *widget, GtkWidget *container){
-    GList *ChildList = gtk_container_get_children(GTK_CONTAINER(container));
-    GList *ptr = ChildList;
-    while (ptr != NULL){
-        gtk_widget_destroy(ptr->data);
-        ptr = ptr->next;
-    }
-    g_list_free(ChildList);
-
-    // Reconstruction
-    for (int i = 0; i < subject->size; i++){
-        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
-        const gchar *name = subject->name;
-        const gchar *value = g_strdup_printf("%f", subject->grades[i].value);
-        const gchar *coef = g_strdup_printf("%f", subject->grades[i].coef);
-
-        gtk_label_new(name);
-        gtk_label_new(value);
-        g_free(value);
-        gtk_label_new(coef);
-        g_free(coef);
-    }
-}
+void initSubjects(void);
+Subject *getSubjectByName(const char *name);
 
 void create_main_window(int argc, char *argv[]) {
     GtkWidget *window;
@@ -155,7 +171,7 @@ void create_main_window(int argc, char *argv[]) {
 
     Sem1Form.combo_nature = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "C");
-    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "infoI");
+    gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "I");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "Maths");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "Anglais");
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(Sem1Form.combo_nature), "ECG");
