@@ -53,14 +53,62 @@ void refreshUI(GtkWidget *container){
     Subject *subjects[] = {
         &maths,
         &english,
-        &ecg,
         &infoI,
-        &infoC
-
+        &infoC,
+        &ecg
     };
     int nbSubjects = sizeof(subjects) / sizeof(subjects[0]);
     for (int s = 0; s < nbSubjects; s++){
         Subject *subject = subjects[s];
+
+        if (subject == &maths){
+            GtkWidget *title = gtk_label_new(NULL);
+            gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>CBE</b></span>");
+            gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_box_pack_start(
+                GTK_BOX(container),
+                title,
+                FALSE,
+                FALSE,
+                10
+            );
+        }
+        if (subject == &infoI){
+            GtkWidget *title = gtk_label_new(NULL);
+            gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>I</b></span>");
+            gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_box_pack_start(
+                GTK_BOX(container),
+                title,
+                FALSE,
+                FALSE,
+                10
+            );
+        }
+        if (subject == &infoC){
+            GtkWidget *title = gtk_label_new(NULL);
+            gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>C</b></span>");
+            gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_box_pack_start(
+                GTK_BOX(container),
+                title,
+                FALSE,
+                FALSE,
+                10
+            );
+        }
+        if (subject == &ecg){
+            GtkWidget *title = gtk_label_new(NULL);
+            gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>ECG</b></span>");
+            gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_box_pack_start(
+                GTK_BOX(container),
+                title,
+                FALSE,
+                FALSE,
+                10
+            );
+        }
         for (int i = 0; i < subject->size; i++){
         GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
         const gchar *name = subject->name;
