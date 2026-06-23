@@ -16,6 +16,12 @@ typedef struct {
     GtkWidget *vboxList;
 } GradeForm;
 
+extern Subject maths;
+extern Subject english;
+extern Subject ecg;
+extern Subject infoI;
+extern Subject infoC;
+
 static void on_destroy(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
 }
@@ -34,7 +40,7 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
     }
 }
 
-void refreshUI(Subject *subject, GtkWidget *container){
+void refreshUI(GtkWidget *container){
     GList *ChildList = gtk_container_get_children(GTK_CONTAINER(container));
     GList *ptr = ChildList;
     while (ptr != NULL){
@@ -44,7 +50,18 @@ void refreshUI(Subject *subject, GtkWidget *container){
     g_list_free(ChildList);
 
     // Reconstruction
-    for (int i = 0; i < subject->size; i++){
+    Subject *subjects[] = {
+        &maths,
+        &english,
+        &ecg,
+        &infoI,
+        &infoC
+
+    };
+    int nbSubjects = sizeof(subjects) / sizeof(subjects[0]);
+    for (int s = 0; s < nbSubjects; s++){
+        Subject *subject = subjects[s];
+        for (int i = 0; i < subject->size; i++){
         GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
         const gchar *name = subject->name;
         gchar *value = g_strdup_printf("%0.1f", subject->grades[i].value);
@@ -66,6 +83,7 @@ void refreshUI(Subject *subject, GtkWidget *container){
         g_free(coef);
 
         gtk_container_add(GTK_CONTAINER(container), row);
+        }
     }
     gtk_widget_show_all(container);
 }
@@ -90,7 +108,7 @@ void on_addGrade(GtkWidget *button, gpointer data){
         }
 
     addGrade(subject, g);
-    refreshUI(subject, form->vboxList);
+    refreshUI(form->vboxList);
 }
 
 void initSubjects(void);
