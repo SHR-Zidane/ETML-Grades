@@ -58,6 +58,7 @@ void refreshUI(GtkWidget *container){
         &ecg
     };
     int nbSubjects = sizeof(subjects) / sizeof(subjects[0]);
+    // INITIALISATION DE CHAQUE SUJET
     for (int s = 0; s < nbSubjects; s++){
         Subject *subject = subjects[s];
 
@@ -110,29 +111,65 @@ void refreshUI(GtkWidget *container){
             );
         }
         for (int i = 0; i < subject->size; i++){
-        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
-        const gchar *name = subject->name;
-        gchar *value = g_strdup_printf("%0.1f", subject->grades[i].value);
-        gchar *coef = g_strdup_printf("%0.1f", subject->grades[i].coef);
+            //AFFICHAGE DES NOTES
+            GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
+            const gchar *name = subject->name;
+            gchar *value = g_strdup_printf("%0.1f", subject->grades[i].value);
+            gchar *coef = g_strdup_printf("%0.1f", subject->grades[i].coef);
 
-        GtkWidget *labelName;
-        GtkWidget *labelValue;
-        GtkWidget *labelCoef;
+            GtkWidget *labelName;
+            GtkWidget *labelValue;
+            GtkWidget *labelCoef;
 
-        printf("name = %s\n", name);
+            labelName = gtk_label_new(name);
+            gtk_box_pack_start(GTK_BOX(row), labelName, FALSE, FALSE, 15);
+            labelValue = gtk_label_new(value);
+            gtk_box_pack_start(GTK_BOX(row), labelValue, FALSE, FALSE, 15);
+            g_free(value);
+            labelCoef = gtk_label_new(coef);
+            gtk_box_pack_start(GTK_BOX(row), labelCoef, FALSE, FALSE, 15);
+            g_free(coef);
 
-        labelName = gtk_label_new(name);
-        gtk_box_pack_start(GTK_BOX(row), labelName, FALSE, FALSE, 15);
-        labelValue = gtk_label_new(value);
-        gtk_box_pack_start(GTK_BOX(row), labelValue, FALSE, FALSE, 15);
-        g_free(value);
-        labelCoef = gtk_label_new(coef);
-        gtk_box_pack_start(GTK_BOX(row), labelCoef, FALSE, FALSE, 15);
-        g_free(coef);
-
-        gtk_container_add(GTK_CONTAINER(container), row);
+            gtk_container_add(GTK_CONTAINER(container), row);
+        }
+        //AFFICHAGE DES MOYENNES
+        if (subject == &maths){
+        float avg = Avg(subject);
+        gchar *avgMath = g_strdup_printf("Moyenne Maths: %0.1f", avg);
+        GtkWidget *labelavgmath = gtk_label_new(avgMath);
+        gtk_box_pack_start(GTK_BOX(container), labelavgmath, FALSE, FALSE, 15);
+        g_free(avgMath);
+        }
+        if (subject == &english){
+        float avg = Avg(subject);
+        gchar *avgAng = g_strdup_printf("Moyenne Anglais: %0.1f", avg);
+        GtkWidget *labelavgAng = gtk_label_new(avgAng);
+        gtk_box_pack_start(GTK_BOX(container), labelavgAng, FALSE, FALSE, 15);
+        g_free(avgAng);
+        }
+        if (subject == &infoI){
+        float avg = Avg(subject);
+        gchar *avgI = g_strdup_printf("Moyenne Module I: %0.1f", avg);
+        GtkWidget *labelavgI = gtk_label_new(avgI);
+        gtk_box_pack_start(GTK_BOX(container), labelavgI, FALSE, FALSE, 15);
+        g_free(avgI);
+        }
+        if (subject == &infoC){
+        float avg = Avg(subject);
+        gchar *avgC = g_strdup_printf("Moyenne Module C: %0.1f", avg);
+        GtkWidget *labelavgC = gtk_label_new(avgC);
+        gtk_box_pack_start(GTK_BOX(container), labelavgC, FALSE, FALSE, 15);
+        g_free(avgC);
+        }
+        if (subject == &ecg){
+        float avg = Avg(subject);
+        gchar *avgECG = g_strdup_printf("Moyenne ECG: %0.1f", avg);
+        GtkWidget *labelavgecg = gtk_label_new(avgECG);
+        gtk_box_pack_start(GTK_BOX(container), labelavgecg, FALSE, FALSE, 15);
+        g_free(avgECG);
         }
     }
+
     gtk_widget_show_all(container);
 }
 
