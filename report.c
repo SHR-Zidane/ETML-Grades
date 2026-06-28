@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "report.h"
+#include <string.h>
+
 
 float Avg(Subject *subject) {
     if (subject == NULL || subject->size <= 0) {
@@ -10,6 +12,28 @@ float Avg(Subject *subject) {
     float sumG = 0;
     float sumC = 0;
     for (int i = 0; i < subject->size; i++) {
+
+        sumG += subject->grades[i].value;
+        sumC += 1;
+    }
+    if (sumC == 0) return 0;
+    return round05(sumG / sumC);
+}
+
+float AvgModule(Subject *subject, const char *module) {
+    if (subject == NULL || subject->size <= 0) {
+        return 0;
+    }
+    float sumG = 0;
+    float sumC = 0;
+    for (int i = 0; i < subject->size; i++) {
+        if (subject->grades[i].module == NULL) {
+            continue;
+        }
+        if (module != NULL && strcmp(subject->grades[i].module, module) != 0) {
+            continue;
+        }
+
         if (subject->grades[i].has_coef) {
             sumG += subject->grades[i].value * subject->grades[i].coef;
             sumC += subject->grades[i].coef;
@@ -22,7 +46,6 @@ float Avg(Subject *subject) {
     if (sumC == 0) return 0;
     return round05(sumG / sumC);
 }
-
 float AvgInfo(Subject *subject, int nbSubjects) {
     float sumI = 0;
     int Icount = 0;

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 typedef struct {
+    char *module;
     float value;
     bool has_coef;
     float coef;

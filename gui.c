@@ -148,6 +148,14 @@ void refreshUI(GtkWidget *container){
         g_free(avgAng);
         }
         if (subject == &infoI){
+            for (int i = 0; i < subject->size; i++) {
+                gchar *module = g_strdup(subject->grades[i].module);
+                gchar *avgModule = g_strdup_printf("Moyenne Module %s: %0.1f", module, Avg(subject));
+                GtkWidget *labelavgModule = gtk_label_new(avgModule);
+                gtk_box_pack_start(GTK_BOX(container), labelavgModule, FALSE, FALSE, 15);
+                g_free(module);
+                g_free(avgModule);
+            }
         float avg = Avg(subject);
         gchar *avgI = g_strdup_printf("Moyenne Module I: %0.1f", avg);
         GtkWidget *labelavgI = gtk_label_new(avgI);
@@ -175,10 +183,12 @@ void refreshUI(GtkWidget *container){
 
 void on_addGrade(GtkWidget *button, gpointer data){
     GradeForm *form = data;
+    const gchar *module = gtk_entry_get_text(GTK_ENTRY(form->entryName));
     gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
     Subject *subject = getSubjectByName(type);
     g_free(type);
     Grade g;
+    g.module = g_strdup(module);
     const gchar *gradeText = gtk_entry_get_text(GTK_ENTRY(form->entryGrade));
     g.value = atof(gradeText);
     gboolean isChecked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(form->checkWeight));
