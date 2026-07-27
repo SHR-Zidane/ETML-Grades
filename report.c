@@ -102,6 +102,42 @@ float round01(float value){
     return value;
 }
 
+float AvgOfModules(Subject *subject) {
+    if (subject == NULL || subject->size <= 0) return 0;
+
+    int nModules = 0;
+    char **modules = NULL;
+
+    for (int i = 0; i < subject->size; i++) {
+        if (subject->grades[i].module == NULL) continue;
+        int found = 0;
+        for (int m = 0; m < nModules; m++) {
+            if (strcmp(modules[m], subject->grades[i].module) == 0) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            modules = realloc(modules, (nModules + 1) * sizeof(char *));
+            modules[nModules] = subject->grades[i].module;
+            nModules++;
+        }
+    }
+
+    if (nModules == 0) {
+        free(modules);
+        return 0;
+    }
+
+    float sum = 0;
+    for (int m = 0; m < nModules; m++) {
+        sum += AvgModule(subject, modules[m]);
+    }
+
+    free(modules);
+    return round05(sum / nModules);
+}
+
 // Link GUI
 
 void addGrade(Subject *subject, Grade grade) {
