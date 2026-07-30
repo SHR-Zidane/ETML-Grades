@@ -26,4 +26,7 @@ float round05(float value);
 void addGrade(Subject *subject, Grade grade);
 Subject *getSubjectByName(const char *name);
 float AvgOfModules(Subject *subject);
+float AvgCBE(Subject *maths, Subject *english);
+float AvgInformatique(Subject *infoI, Subject *infoC);
+float AvgGeneral(float avgCBE, float avgInformatique, float avgECG);
 #endif

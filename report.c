@@ -138,6 +138,20 @@ float AvgOfModules(Subject *subject) {
     return round05(sum / nModules);
 }
 
+float AvgCBE(Subject *maths, Subject *english) {
+    return round01((Avg(maths) + Avg(english)) / 2.0f);
+}
+
+float AvgInformatique(Subject *infoI, Subject *infoC) {
+    const float I_COEF = 0.8f;
+    const float C_COEF = 0.2f;
+    return round01((AvgOfModules(infoI) * I_COEF) + (AvgOfModules(infoC) * C_COEF));
+}
+
+float AvgGeneral(float avgCBE, float avgInformatique, float avgECG) {
+    return round01((avgCBE + avgInformatique + avgECG) / 3.0f);
+}
+
 // Link GUI
 
 void addGrade(Subject *subject, Grade grade) {
