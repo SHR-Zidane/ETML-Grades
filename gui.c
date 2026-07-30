@@ -16,6 +16,9 @@ typedef struct {
     GtkWidget *entryWeight;
     GtkWidget *vboxList;
     GtkWidget *vboxAvg;
+    GtkWidget *vboxListSem2;
+    GtkWidget *btnCloseSem;
+    GtkWidget *hboxAddGrade;
     GtkWidget *vboxSem2;
 } GradeForm;
 
@@ -24,6 +27,13 @@ extern Subject english;
 extern Subject ecg;
 extern Subject infoI;
 extern Subject infoC;
+extern Subject maths2;
+extern Subject english2;
+extern Subject ecg2;
+extern Subject infoI2;
+extern Subject infoC2;
+
+static int currentSem = 1;
 
 static void on_destroy(GtkWidget *widget, gpointer data) {
     gtk_main_quit();
@@ -43,7 +53,7 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
     }
 }
 
-void refreshUI(GtkWidget *container){
+void refreshUI(GtkWidget *container, int sem){
     GList *ChildList = gtk_container_get_children(GTK_CONTAINER(container));
     GList *ptr = ChildList;
     while (ptr != NULL){
@@ -52,66 +62,41 @@ void refreshUI(GtkWidget *container){
     }
     g_list_free(ChildList);
 
-    // Reconstruction
-    Subject *subjects[] = {
-        &maths,
-        &english,
-        &infoI,
-        &infoC,
-        &ecg
-    };
+    Subject *m, *e, *ec, *iI, *iC;
+    if (sem == 1) {
+        m = &maths; e = &english; ec = &ecg; iI = &infoI; iC = &infoC;
+    } else {
+        m = &maths2; e = &english2; ec = &ecg2; iI = &infoI2; iC = &infoC2;
+    }
+    Subject *subjects[] = {m, e, iI, iC, ec};
     int nbSubjects = sizeof(subjects) / sizeof(subjects[0]);
-    // INITIALISATION DE CHAQUE SUJET
+
     for (int s = 0; s < nbSubjects; s++){
         Subject *subject = subjects[s];
 
-        if (subject == &maths){
+        if (subject == m){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>CBE</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
-            gtk_box_pack_start(
-                GTK_BOX(container),
-                title,
-                FALSE,
-                FALSE,
-                10
-            );
+            gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
-        if (subject == &infoI){
+        if (subject == iI){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>I</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
-            gtk_box_pack_start(
-                GTK_BOX(container),
-                title,
-                FALSE,
-                FALSE,
-                10
-            );
+            gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
-        if (subject == &infoC){
+        if (subject == iC){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>C</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
-            gtk_box_pack_start(
-                GTK_BOX(container),
-                title,
-                FALSE,
-                FALSE,
-                10
-            );
+            gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
-        if (subject == &ecg){
+        if (subject == ec){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>ECG</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
-            gtk_box_pack_start(
-                GTK_BOX(container),
-                title,
-                FALSE,
-                FALSE,
-                10
-            );
+            gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
         if (!(subject->type == 'I' || subject->type == 'C')) {
             for (int i = 0; i < subject->size; i++){
@@ -136,20 +121,20 @@ void refreshUI(GtkWidget *container){
                 gtk_container_add(GTK_CONTAINER(container), row);
             }
         }
-        if (subject == &maths){
+        if (subject == m){
         float avg = Avg(subject);
         gchar *avgMath = g_strdup_printf("Moyenne Maths: %0.1f", avg);
         GtkWidget *labelavgmath = gtk_label_new(avgMath);
         gtk_box_pack_start(GTK_BOX(container), labelavgmath, FALSE, FALSE, 15);
         g_free(avgMath);
         }
-        if (subject == &english){
+        if (subject == e){
         float avg = Avg(subject);
         gchar *avgAng = g_strdup_printf("Moyenne Anglais: %0.1f", avg);
         GtkWidget *labelavgAng = gtk_label_new(avgAng);
         gtk_box_pack_start(GTK_BOX(container), labelavgAng, FALSE, FALSE, 15);
         g_free(avgAng);
-        float cbe = AvgCBE(&maths, &english);
+        float cbe = AvgCBE(m, e);
         gchar *cbeStr = g_strdup_printf("Moyenne CBE: %0.1f", cbe);
         GtkWidget *labelCBE = gtk_label_new(cbeStr);
         gtk_box_pack_start(GTK_BOX(container), labelCBE, FALSE, FALSE, 15);
@@ -217,20 +202,20 @@ void refreshUI(GtkWidget *container){
                 g_free(overallStr);
             }
         }
-        if (subject == &infoC){
-        float infoAvg = AvgInformatique(&infoI, &infoC);
+        if (subject == iC){
+        float infoAvg = AvgInformatique(iI, iC);
         gchar *infoStr = g_strdup_printf("Moyenne Informatique: %0.1f", infoAvg);
         GtkWidget *labelInfo = gtk_label_new(infoStr);
         gtk_box_pack_start(GTK_BOX(container), labelInfo, FALSE, FALSE, 15);
         g_free(infoStr);
         }
-        if (subject == &ecg){
+        if (subject == ec){
         float avg = Avg(subject);
         gchar *avgECG = g_strdup_printf("Moyenne ECG: %0.1f", avg);
         GtkWidget *labelavgecg = gtk_label_new(avgECG);
         gtk_box_pack_start(GTK_BOX(container), labelavgecg, FALSE, FALSE, 15);
         g_free(avgECG);
-        float avgGeneral = AvgGeneral(AvgCBE(&maths, &english), AvgInformatique(&infoI, &infoC), avg);
+        float avgGeneral = AvgGeneral(AvgCBE(m, e), AvgInformatique(iI, iC), avg);
         gchar *generalStr = g_strdup_printf("Moyenne Générale: %0.1f", avgGeneral);
         GtkWidget *labelGeneral = gtk_label_new(generalStr);
         gtk_box_pack_start(GTK_BOX(container), labelGeneral, FALSE, FALSE, 15);
@@ -241,11 +226,64 @@ void refreshUI(GtkWidget *container){
     gtk_widget_show_all(container);
 }
 
+void on_closeSem1(GtkWidget *button, gpointer data){
+    GradeForm *form = data;
+    gint result;
+
+    if (currentSem == 1) {
+        GtkWidget *dialog = gtk_message_dialog_new(
+            GTK_WINDOW(gtk_widget_get_toplevel(button)),
+            GTK_DIALOG_MODAL,
+            GTK_MESSAGE_QUESTION,
+            GTK_BUTTONS_YES_NO,
+            "Fermer le semestre 1 ?\nVous pourrez ensuite saisir les notes du semestre 2."
+        );
+        result = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+
+        if (result == GTK_RESPONSE_YES) {
+            currentSem = 2;
+
+            g_object_ref(form->hboxAddGrade);
+            gtk_container_remove(GTK_CONTAINER(gtk_widget_get_parent(form->hboxAddGrade)), form->hboxAddGrade);
+            gtk_box_pack_start(GTK_BOX(form->vboxSem2), form->hboxAddGrade, FALSE, FALSE, 0);
+            gtk_box_reorder_child(GTK_BOX(form->vboxSem2), form->hboxAddGrade, 1);
+            g_object_unref(form->hboxAddGrade);
+
+            g_object_ref(form->btnCloseSem);
+            gtk_container_remove(GTK_CONTAINER(gtk_widget_get_parent(form->btnCloseSem)), form->btnCloseSem);
+            gtk_box_pack_start(GTK_BOX(form->vboxSem2), form->btnCloseSem, FALSE, FALSE, 5);
+            gtk_box_reorder_child(GTK_BOX(form->vboxSem2), form->btnCloseSem, 2);
+            g_object_unref(form->btnCloseSem);
+
+            gtk_button_set_label(GTK_BUTTON(form->btnCloseSem), "Clôturer le semestre 2");
+
+            refreshUI(form->vboxListSem2, 2);
+            gtk_widget_show_all(form->vboxSem2);
+        }
+    } else {
+        GtkWidget *dialog = gtk_message_dialog_new(
+            GTK_WINDOW(gtk_widget_get_toplevel(button)),
+            GTK_DIALOG_MODAL,
+            GTK_MESSAGE_QUESTION,
+            GTK_BUTTONS_YES_NO,
+            "Fermer le semestre 2 ?\nVous ne pourrez plus ajouter de notes."
+        );
+        result = gtk_dialog_run(GTK_DIALOG(dialog));
+        gtk_widget_destroy(dialog);
+
+        if (result == GTK_RESPONSE_YES) {
+            gtk_widget_set_visible(form->hboxAddGrade, FALSE);
+            gtk_widget_set_visible(form->btnCloseSem, FALSE);
+        }
+    }
+}
+
 void on_addGrade(GtkWidget *button, gpointer data){
     GradeForm *form = data;
     const gchar *module = gtk_entry_get_text(GTK_ENTRY(form->entryName));
     gchar *type = gtk_combo_box_text_get_active_text(GTK_COMBO_BOX_TEXT(form->combo_nature));
-    Subject *subject = getSubjectByName(type);
+    Subject *subject = getSubjectByName(type, currentSem);
     g_free(type);
     Grade g;
     g.module = g_strdup(module);
@@ -263,7 +301,8 @@ void on_addGrade(GtkWidget *button, gpointer data){
         }
 
     addGrade(subject, g);
-    refreshUI(form->vboxList);
+    refreshUI(form->vboxList, 1);
+    refreshUI(form->vboxListSem2, 2);
 
     GList *avgChildren = gtk_container_get_children(GTK_CONTAINER(form->vboxAvg));
     GList *ptrAvg = avgChildren;
@@ -276,39 +315,42 @@ void on_addGrade(GtkWidget *button, gpointer data){
     GtkWidget *avgHeader = gtk_label_new("Annual Avg");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), avgHeader, FALSE, FALSE, 0);
 
-    float avgCBE = AvgCBE(&maths, &english);
-    float avgInfo = AvgInformatique(&infoI, &infoC);
-    float avgECG = Avg(&ecg);
-    float avgGeneral = AvgGeneral(avgCBE, avgInfo, avgECG);
+    float cbe1 = AvgCBE(&maths, &english);
+    float cbe2 = AvgCBE(&maths2, &english2);
+    float cbeYear = round05((cbe1 + cbe2) / 2.0f);
+    float info1 = AvgInformatique(&infoI, &infoC);
+    float info2 = AvgInformatique(&infoI2, &infoC2);
+    float infoYear = round05((info1 + info2) / 2.0f);
+    float ecg1 = Avg(&ecg);
+    float ecg2_val = Avg(&ecg2);
+    float ecgYear = round05((ecg1 + ecg2_val) / 2.0f);
+    float generalYear = AvgGeneral(cbeYear, infoYear, ecgYear);
 
-    gchar *generalStr = g_strdup_printf("Moyenne Générale : %.1f", avgGeneral);
+    gchar *cbeStr = g_strdup_printf("Moyenne CBE annuelle: %.1f", cbeYear);
+    GtkWidget *cbeLabel = gtk_label_new(cbeStr);
+    gtk_box_pack_start(GTK_BOX(form->vboxAvg), cbeLabel, FALSE, FALSE, 15);
+    g_free(cbeStr);
+
+    gchar *infoStr = g_strdup_printf("Moyenne Informatique annuelle: %.1f", infoYear);
+    GtkWidget *infoLabel = gtk_label_new(infoStr);
+    gtk_box_pack_start(GTK_BOX(form->vboxAvg), infoLabel, FALSE, FALSE, 15);
+    g_free(infoStr);
+
+    gchar *ecgStr = g_strdup_printf("Moyenne ECG annuelle: %.1f", ecgYear);
+    GtkWidget *ecgLabel = gtk_label_new(ecgStr);
+    gtk_box_pack_start(GTK_BOX(form->vboxAvg), ecgLabel, FALSE, FALSE, 15);
+    g_free(ecgStr);
+
+    gchar *generalStr = g_strdup_printf("Moyenne Générale annuelle: %.1f", generalYear);
     GtkWidget *generalLabel = gtk_label_new(generalStr);
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), generalLabel, FALSE, FALSE, 15);
     g_free(generalStr);
 
     gtk_widget_show_all(form->vboxAvg);
-
-    GList *sem2Children = gtk_container_get_children(GTK_CONTAINER(form->vboxSem2));
-    GList *ptrSem2 = sem2Children;
-    while (ptrSem2 != NULL){
-        gtk_widget_destroy(ptrSem2->data);
-        ptrSem2 = ptrSem2->next;
-    }
-    g_list_free(sem2Children);
-
-    GtkWidget *sem2Header = gtk_label_new("Semester 2");
-    gtk_box_pack_start(GTK_BOX(form->vboxSem2), sem2Header, FALSE, FALSE, 0);
-
-    gchar *sem2GeneralStr = g_strdup_printf("Moyenne Générale : %.1f", avgGeneral);
-    GtkWidget *sem2GeneralLabel = gtk_label_new(sem2GeneralStr);
-    gtk_box_pack_start(GTK_BOX(form->vboxSem2), sem2GeneralLabel, FALSE, FALSE, 15);
-    g_free(sem2GeneralStr);
-
-    gtk_widget_show_all(form->vboxSem2);
 }
 
 void initSubjects(void);
-Subject *getSubjectByName(const char *name);
+Subject *getSubjectByName(const char *name, int sem);
 
 void create_main_window(int argc, char *argv[]) {
     GtkWidget *window;
@@ -324,6 +366,7 @@ void create_main_window(int argc, char *argv[]) {
     GtkWidget *hbox_add_grade;
     GtkWidget *btn_add;
     GtkWidget *scroll_sem1;
+    GtkWidget *scroll_sem2;
     static GradeForm Sem1Form;
 
     gtk_init(&argc, &argv);
@@ -406,16 +449,28 @@ void create_main_window(int argc, char *argv[]) {
 
     Sem1Form.vboxList = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     Sem1Form.vboxAvg = vbox_avg;
+    Sem1Form.vboxListSem2 = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    Sem1Form.hboxAddGrade = hbox_add_grade;
     Sem1Form.vboxSem2 = vbox_sem2;
 
     gtk_container_add(GTK_CONTAINER(scroll_sem1), Sem1Form.vboxList);
 
+    scroll_sem2 = gtk_scrolled_window_new(NULL, NULL);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll_sem2), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+    gtk_container_add(GTK_CONTAINER(scroll_sem2), Sem1Form.vboxListSem2);
+
+    GtkWidget *btnCloseSem = gtk_button_new_with_label("Clôturer le semestre 1");
+    Sem1Form.btnCloseSem = btnCloseSem;
+    g_signal_connect(btnCloseSem, "clicked", G_CALLBACK(on_closeSem1), &Sem1Form);
+
     // Section Semestre 1
     gtk_box_pack_start(GTK_BOX(vbox_sem1), gtk_label_new("Semester 1"), FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox_sem1), hbox_add_grade, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox_sem1), btnCloseSem, FALSE, FALSE, 5);
     gtk_box_pack_start(GTK_BOX(vbox_sem1), scroll_sem1, TRUE, TRUE, 0);
     // Section Semestre 2
-    // (populated in on_addGrade)
+    gtk_box_pack_start(GTK_BOX(vbox_sem2), gtk_label_new("Semester 2"), FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox_sem2), scroll_sem2, TRUE, TRUE, 0);
     // Section Moyenne Annuel
     // (populated in on_addGrade)
 
