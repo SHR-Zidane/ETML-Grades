@@ -53,6 +53,32 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
     }
 }
 
+static const gchar *STYLE_CSS =
+"window { background-color: #f1f5f9; }\n"
+".column-title { font-size: 22px; font-weight: 700; color: #0f172a; }\n"
+".section-title { font-size: 16px; font-weight: 700; color: #334155; }\n"
+".grade-row { background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; }\n"
+".mod-label { font-weight: 600; color: #0369a1; }\n"
+".val-label { font-weight: 700; font-size: 15px; color: #0f172a; }\n"
+".co-label { color: #64748b; font-size: 13px; }\n"
+".module-avg { font-style: italic; font-weight: 700; color: #0284c7; }\n"
+".subject-avg { font-weight: 600; color: #475569; }\n"
+".general-avg { background-color: #0f172a; color: #ffffff; font-weight: 700; border-radius: 8px; padding: 6px 12px; }\n"
+".btn-add { background-color: #2563eb; color: #ffffff; font-weight: 700; border-radius: 8px; padding: 6px 16px; }\n"
+".btn-close { background-color: #dc2626; color: #ffffff; font-weight: 700; border-radius: 8px; }\n"
+"entry { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 5px 8px; }\n";
+
+static void applyStyle(void) {
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, STYLE_CSS, -1, NULL);
+    gtk_style_context_add_provider_for_screen(
+        gdk_screen_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+    g_object_unref(provider);
+}
+
 void refreshUI(GtkWidget *container, int sem){
     GList *ChildList = gtk_container_get_children(GTK_CONTAINER(container));
     GList *ptr = ChildList;
@@ -78,24 +104,28 @@ void refreshUI(GtkWidget *container, int sem){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>CBE</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_style_context_add_class(gtk_widget_get_style_context(title), "section-title");
             gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
         if (subject == iI){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>I</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_style_context_add_class(gtk_widget_get_style_context(title), "section-title");
             gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
         if (subject == iC){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>C</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_style_context_add_class(gtk_widget_get_style_context(title), "section-title");
             gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
         if (subject == ec){
             GtkWidget *title = gtk_label_new(NULL);
             gtk_label_set_markup(GTK_LABEL(title), "<span size='x-large'><b>ECG</b></span>");
             gtk_widget_set_halign(title, GTK_ALIGN_START);
+            gtk_style_context_add_class(gtk_widget_get_style_context(title), "section-title");
             gtk_box_pack_start(GTK_BOX(container), title, FALSE, FALSE, 10);
         }
         if (!(subject->type == 'I' || subject->type == 'C')) {
@@ -105,17 +135,23 @@ void refreshUI(GtkWidget *container, int sem){
                 gchar *value = g_strdup_printf("%0.1f", subject->grades[i].value);
                 gchar *coef = g_strdup_printf("%0.1f", subject->grades[i].coef);
 
-                GtkWidget *labelName;
-                GtkWidget *labelValue;
-                GtkWidget *labelCoef;
+                GtkWidget *labelName = gtk_label_new(name);
+                GtkWidget *labelValue = gtk_label_new(value);
+                GtkWidget *labelCoef = gtk_label_new(coef);
+                gtk_label_set_width_chars(GTK_LABEL(labelName), 10);
+                gtk_widget_set_halign(labelValue, GTK_ALIGN_END);
+                gtk_label_set_width_chars(GTK_LABEL(labelValue), 6);
+                gtk_widget_set_halign(labelCoef, GTK_ALIGN_END);
+                gtk_label_set_width_chars(GTK_LABEL(labelCoef), 6);
+                gtk_style_context_add_class(gtk_widget_get_style_context(row), "grade-row");
+                gtk_style_context_add_class(gtk_widget_get_style_context(labelName), "mod-label");
+                gtk_style_context_add_class(gtk_widget_get_style_context(labelValue), "val-label");
+                gtk_style_context_add_class(gtk_widget_get_style_context(labelCoef), "co-label");
 
-                labelName = gtk_label_new(name);
                 gtk_box_pack_start(GTK_BOX(row), labelName, FALSE, FALSE, 15);
-                labelValue = gtk_label_new(value);
                 gtk_box_pack_start(GTK_BOX(row), labelValue, FALSE, FALSE, 15);
-                g_free(value);
-                labelCoef = gtk_label_new(coef);
                 gtk_box_pack_start(GTK_BOX(row), labelCoef, FALSE, FALSE, 15);
+                g_free(value);
                 g_free(coef);
 
                 gtk_container_add(GTK_CONTAINER(container), row);
@@ -125,6 +161,7 @@ void refreshUI(GtkWidget *container, int sem){
         float avg = Avg(subject);
         gchar *avgMath = g_strdup_printf("Moyenne Maths: %0.1f", avg);
         GtkWidget *labelavgmath = gtk_label_new(avgMath);
+        gtk_style_context_add_class(gtk_widget_get_style_context(labelavgmath), "subject-avg");
         gtk_box_pack_start(GTK_BOX(container), labelavgmath, FALSE, FALSE, 15);
         g_free(avgMath);
         }
@@ -132,11 +169,13 @@ void refreshUI(GtkWidget *container, int sem){
         float avg = Avg(subject);
         gchar *avgAng = g_strdup_printf("Moyenne Anglais: %0.1f", avg);
         GtkWidget *labelavgAng = gtk_label_new(avgAng);
+        gtk_style_context_add_class(gtk_widget_get_style_context(labelavgAng), "subject-avg");
         gtk_box_pack_start(GTK_BOX(container), labelavgAng, FALSE, FALSE, 15);
         g_free(avgAng);
         float cbe = AvgCBE(m, e);
         gchar *cbeStr = g_strdup_printf("Moyenne CBE: %0.1f", cbe);
         GtkWidget *labelCBE = gtk_label_new(cbeStr);
+        gtk_style_context_add_class(gtk_widget_get_style_context(labelCBE), "subject-avg");
         gtk_box_pack_start(GTK_BOX(container), labelCBE, FALSE, FALSE, 15);
         g_free(cbeStr);
         }
@@ -170,12 +209,22 @@ void refreshUI(GtkWidget *container, int sem){
                             gchar *coef = g_strdup_printf("%0.1f", subject->grades[i].coef);
 
                             GtkWidget *labelMod = gtk_label_new(modules[m]);
-                            gtk_box_pack_start(GTK_BOX(row), labelMod, FALSE, FALSE, 15);
                             GtkWidget *labelValue = gtk_label_new(value);
-                            gtk_box_pack_start(GTK_BOX(row), labelValue, FALSE, FALSE, 15);
-                            g_free(value);
                             GtkWidget *labelCoef = gtk_label_new(coef);
+                            gtk_label_set_width_chars(GTK_LABEL(labelMod), 10);
+                            gtk_widget_set_halign(labelValue, GTK_ALIGN_END);
+                            gtk_label_set_width_chars(GTK_LABEL(labelValue), 6);
+                            gtk_widget_set_halign(labelCoef, GTK_ALIGN_END);
+                            gtk_label_set_width_chars(GTK_LABEL(labelCoef), 6);
+                            gtk_style_context_add_class(gtk_widget_get_style_context(row), "grade-row");
+                            gtk_style_context_add_class(gtk_widget_get_style_context(labelMod), "mod-label");
+                            gtk_style_context_add_class(gtk_widget_get_style_context(labelValue), "val-label");
+                            gtk_style_context_add_class(gtk_widget_get_style_context(labelCoef), "co-label");
+
+                            gtk_box_pack_start(GTK_BOX(row), labelMod, FALSE, FALSE, 15);
+                            gtk_box_pack_start(GTK_BOX(row), labelValue, FALSE, FALSE, 15);
                             gtk_box_pack_start(GTK_BOX(row), labelCoef, FALSE, FALSE, 15);
+                            g_free(value);
                             g_free(coef);
 
                             gtk_container_add(GTK_CONTAINER(container), row);
@@ -184,6 +233,7 @@ void refreshUI(GtkWidget *container, int sem){
                     float modAvg = AvgModule(subject, modules[m]);
                     gchar *avgStr = g_strdup_printf("Moyenne du module %s : %.1f", modules[m], modAvg);
                     GtkWidget *labelModAvg = gtk_label_new(avgStr);
+                    gtk_style_context_add_class(gtk_widget_get_style_context(labelModAvg), "module-avg");
                     gtk_box_pack_start(GTK_BOX(container), labelModAvg, FALSE, FALSE, 15);
                     g_free(avgStr);
                 }
@@ -198,6 +248,7 @@ void refreshUI(GtkWidget *container, int sem){
                     overallStr = g_strdup_printf("Moyenne C : %.1f", overall);
                 }
                 GtkWidget *labelOverall = gtk_label_new(overallStr);
+                gtk_style_context_add_class(gtk_widget_get_style_context(labelOverall), "subject-avg");
                 gtk_box_pack_start(GTK_BOX(container), labelOverall, FALSE, FALSE, 15);
                 g_free(overallStr);
             }
@@ -206,6 +257,7 @@ void refreshUI(GtkWidget *container, int sem){
         float infoAvg = AvgInformatique(iI, iC);
         gchar *infoStr = g_strdup_printf("Moyenne Informatique: %0.1f", infoAvg);
         GtkWidget *labelInfo = gtk_label_new(infoStr);
+        gtk_style_context_add_class(gtk_widget_get_style_context(labelInfo), "subject-avg");
         gtk_box_pack_start(GTK_BOX(container), labelInfo, FALSE, FALSE, 15);
         g_free(infoStr);
         }
@@ -213,11 +265,13 @@ void refreshUI(GtkWidget *container, int sem){
         float avg = Avg(subject);
         gchar *avgECG = g_strdup_printf("Moyenne ECG: %0.1f", avg);
         GtkWidget *labelavgecg = gtk_label_new(avgECG);
+        gtk_style_context_add_class(gtk_widget_get_style_context(labelavgecg), "subject-avg");
         gtk_box_pack_start(GTK_BOX(container), labelavgecg, FALSE, FALSE, 15);
         g_free(avgECG);
         float avgGeneral = AvgGeneral(AvgCBE(m, e), AvgInformatique(iI, iC), avg);
         gchar *generalStr = g_strdup_printf("Moyenne Générale: %0.1f", avgGeneral);
         GtkWidget *labelGeneral = gtk_label_new(generalStr);
+        gtk_style_context_add_class(gtk_widget_get_style_context(labelGeneral), "general-avg");
         gtk_box_pack_start(GTK_BOX(container), labelGeneral, FALSE, FALSE, 15);
         g_free(generalStr);
         }
@@ -312,7 +366,8 @@ void on_addGrade(GtkWidget *button, gpointer data){
     }
     g_list_free(avgChildren);
 
-    GtkWidget *avgHeader = gtk_label_new("Annual Avg");
+    GtkWidget *avgHeader = gtk_label_new("Moyenne annuelle");
+    gtk_style_context_add_class(gtk_widget_get_style_context(avgHeader), "column-title");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), avgHeader, FALSE, FALSE, 0);
 
     float cbe1 = AvgCBE(&maths, &english);
@@ -328,21 +383,25 @@ void on_addGrade(GtkWidget *button, gpointer data){
 
     gchar *cbeStr = g_strdup_printf("Moyenne CBE annuelle: %.1f", cbeYear);
     GtkWidget *cbeLabel = gtk_label_new(cbeStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(cbeLabel), "subject-avg");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), cbeLabel, FALSE, FALSE, 15);
     g_free(cbeStr);
 
     gchar *infoStr = g_strdup_printf("Moyenne Informatique annuelle: %.1f", infoYear);
     GtkWidget *infoLabel = gtk_label_new(infoStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(infoLabel), "subject-avg");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), infoLabel, FALSE, FALSE, 15);
     g_free(infoStr);
 
     gchar *ecgStr = g_strdup_printf("Moyenne ECG annuelle: %.1f", ecgYear);
     GtkWidget *ecgLabel = gtk_label_new(ecgStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(ecgLabel), "subject-avg");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), ecgLabel, FALSE, FALSE, 15);
     g_free(ecgStr);
 
     gchar *generalStr = g_strdup_printf("Moyenne Générale annuelle: %.1f", generalYear);
     GtkWidget *generalLabel = gtk_label_new(generalStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(generalLabel), "general-avg");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), generalLabel, FALSE, FALSE, 15);
     g_free(generalStr);
 
@@ -370,6 +429,7 @@ void create_main_window(int argc, char *argv[]) {
     static GradeForm Sem1Form;
 
     gtk_init(&argc, &argv);
+    applyStyle();
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(window), "ETML Grades");
@@ -416,6 +476,7 @@ void create_main_window(int argc, char *argv[]) {
     Sem1Form.checkWeight = gtk_check_button_new_with_label("Pondéré ?:");
     Sem1Form.entryWeight = gtk_entry_new();
     btn_add = gtk_button_new_with_label("+");
+    gtk_style_context_add_class(gtk_widget_get_style_context(btn_add), "btn-add");
 
     gtk_entry_set_placeholder_text(GTK_ENTRY(Sem1Form.entryName), "Name");
     gtk_entry_set_placeholder_text(GTK_ENTRY(Sem1Form.entryGrade), "Note");
@@ -461,15 +522,20 @@ void create_main_window(int argc, char *argv[]) {
 
     GtkWidget *btnCloseSem = gtk_button_new_with_label("Clôturer le semestre 1");
     Sem1Form.btnCloseSem = btnCloseSem;
+    gtk_style_context_add_class(gtk_widget_get_style_context(btnCloseSem), "btn-close");
     g_signal_connect(btnCloseSem, "clicked", G_CALLBACK(on_closeSem1), &Sem1Form);
 
     // Section Semestre 1
-    gtk_box_pack_start(GTK_BOX(vbox_sem1), gtk_label_new("Semester 1"), FALSE, FALSE, 0);
+    GtkWidget *sem1Title = gtk_label_new("Semestre 1");
+    gtk_style_context_add_class(gtk_widget_get_style_context(sem1Title), "column-title");
+    gtk_box_pack_start(GTK_BOX(vbox_sem1), sem1Title, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox_sem1), hbox_add_grade, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox_sem1), btnCloseSem, FALSE, FALSE, 5);
     gtk_box_pack_start(GTK_BOX(vbox_sem1), scroll_sem1, TRUE, TRUE, 0);
     // Section Semestre 2
-    gtk_box_pack_start(GTK_BOX(vbox_sem2), gtk_label_new("Semester 2"), FALSE, FALSE, 0);
+    GtkWidget *sem2Title = gtk_label_new("Semestre 2");
+    gtk_style_context_add_class(gtk_widget_get_style_context(sem2Title), "column-title");
+    gtk_box_pack_start(GTK_BOX(vbox_sem2), sem2Title, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox_sem2), scroll_sem2, TRUE, TRUE, 0);
     // Section Moyenne Annuel
     // (populated in on_addGrade)
