@@ -54,137 +54,152 @@ void on_weightToggled(GtkWidget *checkWidget, gpointer data) {
 }
 
 static const gchar *STYLE_CSS =
-"window {\n"
-"    background-color: #d4d0c8;\n"
-"}\n"
-".column-title {\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-size: 15px;\n"
-"    font-weight: bold;\n"
-"    color: #000000;\n"
-"    margin-bottom: 6px;\n"
-"}\n"
-".section-title {\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-size: 11px;\n"
-"    font-weight: bold;\n"
-"    color: #404040;\n"
-"    text-transform: uppercase;\n"
-"    margin-top: 8px;\n"
-"    margin-bottom: 2px;\n"
-"}\n"
-"/* Cartes transformées en lignes de tableau rigides avec biseau inset */\n"
-".grade-row {\n"
-"    background-color: #ffffff;\n"
-"    border: 1px solid #808080;\n"
-"    border-radius: 0px;\n"
-"    padding: 4px 8px;\n"
-"    margin-bottom: 2px;\n"
-"}\n"
-".mod-label {\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-weight: bold;\n"
-"    color: #000000;\n"
-"    font-size: 11px;\n"
-"}\n"
-".co-label {\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    color: #555555;\n"
-"    font-size: 10px;\n"
-"}\n"
-"/* Badges de note style cellule de grille */\n"
-".val-label {\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-weight: bold;\n"
-"    font-size: 11px;\n"
-"    padding: 2px 6px;\n"
-"    border-radius: 0px;\n"
-"    border: 1px solid #808080;\n"
-"}\n"
-".grade-pass {\n"
-"    background-color: #e6ffe6;\n"
-"    color: #006600;\n"
-"}\n"
-".grade-fail {\n"
-"    background-color: #ffe6e6;\n"
-"    color: #cc0000;\n"
-"}\n"
-"/* Affichage des moyennes */\n"
-".module-avg {\n"
-"    font-size: 11px;\n"
-"    font-weight: bold;\n"
-"    color: #333333;\n"
-"    margin-left: 4px;\n"
-"}\n"
-".subject-avg {\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-weight: bold;\n"
-"    font-size: 11px;\n"
-"    color: #000000;\n"
-"    background-color: #e4e4e4;\n"
-"    border: 1px solid #7f9db9;\n"
-"    padding: 4px 8px;\n"
-"    border-radius: 0px;\n"
-"}\n"
-".general-avg {\n"
-"    background: linear-gradient(to bottom, #0055ea 0%, #0040b0 100%);\n"
-"    color: #ffffff;\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-weight: bold;\n"
-"    font-size: 13px;\n"
-"    border-radius: 0px;\n"
-"    border: 1px solid #002c80;\n"
-"    padding: 6px 10px;\n"
-"}\n"
-"/* Inputs style Win32 / MFC */\n"
-"entry, comboboxbutton {\n"
-"    background-color: #ffffff;\n"
-"    border: 1px solid #7f9db9;\n"
-"    border-radius: 0px;\n"
-"    padding: 2px 4px;\n"
-"    color: #000000;\n"
-"    font-size: 11px;\n"
-"}\n"
-"entry:focus {\n"
-"    border-color: #0055ea;\n"
-"}\n"
-"/* Boutons style biseauté d'application de gestion */\n"
-".btn-add {\n"
-"    background: linear-gradient(to bottom, #f4f4f4 0%, #ececec 50%, #dfdfdf 51%, #d0d0d0 100%);\n"
-"    color: #000000;\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-size: 11px;\n"
-"    font-weight: bold;\n"
-"    border-radius: 2px;\n"
-"    border: 1px solid #707070;\n"
-"    padding: 3px 12px;\n"
-"}\n"
-".btn-add:hover {\n"
-"    background: linear-gradient(to bottom, #eaf6fd 0%, #bee6fd 50%, #a7d9f5 100%);\n"
-"    border-color: #3c7fb1;\n"
-"}\n"
-".btn-add:active {\n"
-"    background: linear-gradient(to bottom, #c4e5f6 0%, #98d1ef 100%);\n"
-"    border-color: #2c628b;\n"
-"}\n"
-".btn-close {\n"
-"    background: linear-gradient(to bottom, #f4f4f4 0%, #ececec 50%, #dfdfdf 51%, #d0d0d0 100%);\n"
-"    color: #a00000;\n"
-"    font-family: 'Tahoma', 'Segoe UI', sans-serif;\n"
-"    font-size: 11px;\n"
-"    font-weight: bold;\n"
-"    border-radius: 2px;\n"
-"    border: 1px solid #707070;\n"
-"    padding: 3px 10px;\n"
-"}\n"
-".btn-close:hover {\n"
-"    background: linear-gradient(to bottom, #fdeaeae0 0%, #fdbebd 50%, #f5a7a7 100%);\n"
-"    border-color: #b13c3c;\n"
-"}\n";
+    /* Fenêtre principale */
+    "window {\n"
+    "    background-color: #d4d0c8;\n"
+    "}\n"
+
+    /* Titres de colonnes */
+    ".column-title {\n"
+    "    font-size: 15pt;\n"
+    "    font-weight: bold;\n"
+    "    color: #000000;\n"
+    "    margin-bottom: 6px;\n"
+    "}\n"
+
+    /* Titres de sections (text-transform supprimé — non supporté GTK3) */
+    ".section-title {\n"
+    "    font-size: 11pt;\n"
+    "    font-weight: bold;\n"
+    "    color: #404040;\n"
+    "    margin-top: 8px;\n"
+    "    margin-bottom: 2px;\n"
+    "}\n"
+
+    /* Lignes de notes */
+    ".grade-row {\n"
+    "    background-color: #ffffff;\n"
+    "    border: 1px solid #808080;\n"
+    "    padding: 4px 8px;\n"
+    "    margin-bottom: 2px;\n"
+    "}\n"
+
+    /* Label nom de module */
+    ".mod-label {\n"
+    "    font-weight: bold;\n"
+    "    color: #000000;\n"
+    "    font-size: 11pt;\n"
+    "}\n"
+
+    /* Label coefficient */
+    ".co-label {\n"
+    "    color: #555555;\n"
+    "    font-size: 10pt;\n"
+    "}\n"
+
+    /* Badge valeur de note */
+    ".val-label {\n"
+    "    font-weight: bold;\n"
+    "    font-size: 11pt;\n"
+    "    padding: 2px 6px;\n"
+    "    border: 1px solid #808080;\n"
+    "}\n"
+
+    /* Note réussie */
+    ".grade-pass {\n"
+    "    background-color: #e6ffe6;\n"
+    "    color: #006600;\n"
+    "}\n"
+
+    /* Note échouée */
+    ".grade-fail {\n"
+    "    background-color: #ffe6e6;\n"
+    "    color: #cc0000;\n"
+    "}\n"
+
+    /* Moyenne de module */
+    ".module-avg {\n"
+    "    font-size: 11pt;\n"
+    "    font-weight: bold;\n"
+    "    color: #333333;\n"
+    "    margin-left: 4px;\n"
+    "}\n"
+
+    /* Moyenne de matière */
+    ".subject-avg {\n"
+    "    font-weight: bold;\n"
+    "    font-size: 11pt;\n"
+    "    color: #000000;\n"
+    "    background-color: #e4e4e4;\n"
+    "    border: 1px solid #7f9db9;\n"
+    "    padding: 4px 8px;\n"
+    "}\n"
+
+    /* Moyenne générale (linear-gradient non supporté GTK3 → couleur plate) */
+    ".general-avg {\n"
+    "    background-color: #0040b0;\n"
+    "    color: #ffffff;\n"
+    "    font-weight: bold;\n"
+    "    font-size: 13pt;\n"
+    "    border: 1px solid #002c80;\n"
+    "    padding: 6px 10px;\n"
+    "}\n"
+
+    /* Champs de saisie */
+    "entry {\n"
+    "    background-color: #ffffff;\n"
+    "    border: 1px solid #7f9db9;\n"
+    "    padding: 2px 4px;\n"
+    "    color: #000000;\n"
+    "    font-size: 11pt;\n"
+    "}\n"
+    "entry:focus {\n"
+    "    border-color: #0055ea;\n"
+    "}\n"
+
+    /* Bouton ajouter (linear-gradient supprimé → couleur plate + hover manuel) */
+    ".btn-add {\n"
+    "    background-color: #ececec;\n"
+    "    color: #000000;\n"
+    "    font-size: 11pt;\n"
+    "    font-weight: bold;\n"
+    "    border: 1px solid #707070;\n"
+    "    padding: 3px 12px;\n"
+    "}\n"
+    ".btn-add:hover {\n"
+    "    background-color: #bee6fd;\n"
+    "    border-color: #3c7fb1;\n"
+    "}\n"
+    ".btn-add:active {\n"
+    "    background-color: #98d1ef;\n"
+    "    border-color: #2c628b;\n"
+    "}\n"
+
+    /* Bouton clôturer */
+    ".btn-close {\n"
+    "    background-color: #ececec;\n"
+    "    color: #a00000;\n"
+    "    font-size: 11pt;\n"
+    "    font-weight: bold;\n"
+    "    border: 1px solid #707070;\n"
+    "    padding: 3px 10px;\n"
+    "}\n"
+    ".btn-close:hover {\n"
+    "    background-color: #fdbebd;\n"
+    "    border-color: #b13c3c;\n"
+    "}\n";
 
 static void applyStyle(void) {
     GtkCssProvider *provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_data(provider, STYLE_CSS, -1, NULL);
+    GError *error = NULL;
+
+    if (!gtk_css_provider_load_from_data(provider, STYLE_CSS, -1, &error)) {
+        g_warning("CSS load failed: %s", error->message);
+        g_error_free(error);
+        g_object_unref(provider);
+        return;
+    }
+
     gtk_style_context_add_provider_for_screen(
         gdk_screen_get_default(),
         GTK_STYLE_PROVIDER(provider),
@@ -568,7 +583,7 @@ void create_main_window(int argc, char *argv[]) {
     gtk_window_set_default_size(GTK_WINDOW(window), 1440, 1024);
     g_signal_connect(window, "destroy", G_CALLBACK(on_destroy), NULL);
 
-    icon = gdk_pixbuf_new_from_file("./img/favicon.ico", NULL);
+    icon = gdk_pixbuf_new_from_file("../img/favicon.ico", NULL);
     if (icon != NULL) {
         gtk_window_set_icon(GTK_WINDOW(window), icon);
         g_object_unref(icon);
@@ -579,7 +594,8 @@ void create_main_window(int argc, char *argv[]) {
     gtk_container_add(GTK_CONTAINER(window), vbox_main);
 
     hbox_header = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 20);
-
+    GtkWidget *link = gtk_link_button_new("https://github.com/SHR-Zidane");
+    gtk_button_set_label(GTK_BUTTON(link), "Made by SHR_Zidane");
     logo_image = gtk_image_new_from_file("./img/ETML-Grades.png");
     combo_year = gtk_combo_box_text_new();
     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(combo_year), "Année 1");
@@ -591,6 +607,7 @@ void create_main_window(int argc, char *argv[]) {
 
     gtk_box_pack_start(GTK_BOX(hbox_header), logo_image, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(hbox_header), combo_year, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox_header), link, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox_main), hbox_header, FALSE, FALSE, 0);
 
     hbox_columns = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 15);
