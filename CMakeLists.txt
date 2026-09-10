@@ -13,6 +13,7 @@ add_executable(programme
     data.c
     report.c
     report.h
+    cJSON.h
 )
 
 target_include_directories(programme PRIVATE ${GTK_INCLUDE_DIRS})
