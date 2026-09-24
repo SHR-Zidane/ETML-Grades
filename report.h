@@ -17,6 +17,11 @@ typedef struct {
     char type;
 } Subject;
 
+extern Subject maths;
+extern Subject english;
+extern Subject ecg;
+extern Subject infoI;
+extern Subject infoC;
 float Avg(Subject *subject);
 float AvgModule(Subject *subject, const char *module);
 float AvgInfo(Subject *subject, int nbSubjects);
@@ -29,4 +34,5 @@ float AvgOfModules(Subject *subject);
 float AvgCBE(Subject *maths, Subject *english);
 float AvgInformatique(Subject *infoI, Subject *infoC);
 float AvgGeneral(float avgCBE, float avgInformatique, float avgECG);
+void saveData(void);
 #endif

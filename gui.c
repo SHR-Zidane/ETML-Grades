@@ -505,6 +505,7 @@ void on_addGrade(GtkWidget *button, gpointer data) {
     }
 
     addGrade(subject, g);
+    saveData();
     refreshUI(form->vboxList, 1);
     refreshUI(form->vboxListSem2, 2);
 
@@ -554,7 +555,6 @@ void on_addGrade(GtkWidget *button, gpointer data) {
     gtk_style_context_add_class(gtk_widget_get_style_context(generalLabel), "general-avg");
     gtk_box_pack_start(GTK_BOX(form->vboxAvg), generalLabel, FALSE, FALSE, 15);
     g_free(generalStr);
-
     gtk_widget_show_all(form->vboxAvg);
 }
 

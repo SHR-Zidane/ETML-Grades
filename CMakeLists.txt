@@ -5,6 +5,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(PkgConfig REQUIRED)
+find_package(cJSON CONFIG REQUIRED)
 pkg_check_modules(GTK REQUIRED gtk+-3.0)
 
 add_executable(programme
@@ -12,15 +13,18 @@ add_executable(programme
     gui.c
     data.c
     report.c
-    report.h
-    cJSON.h
+    save.c
 )
 
 target_include_directories(programme PRIVATE ${GTK_INCLUDE_DIRS})
 target_compile_options(programme PRIVATE ${GTK_CFLAGS_OTHER})
 target_link_directories(programme PRIVATE ${GTK_LIBRARY_DIRS})
 
-target_link_libraries(programme PRIVATE ${GTK_LIBRARIES})
+target_link_libraries(programme PRIVATE
+    ${GTK_LIBRARIES}
+    cjson
+)
+
 if(NOT WIN32)
     target_link_libraries(programme PRIVATE m)
 endif()
