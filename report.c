@@ -145,7 +145,15 @@ float AvgCBE(Subject *maths, Subject *english) {
 float AvgInformatique(Subject *infoI, Subject *infoC) {
     const float I_COEF = 0.8f;
     const float C_COEF = 0.2f;
-    return round01((AvgOfModules(infoI) * I_COEF) + (AvgOfModules(infoC) * C_COEF));
+    if (AvgOfModules(infoC) == 0) {
+        return round01(AvgOfModules(infoI));
+    }
+    if (AvgOfModules(infoI) == 0) {
+        return round01(AvgOfModules(infoC));
+    }
+    else {
+        return round01((AvgOfModules(infoI) * I_COEF) + (AvgOfModules(infoC) * C_COEF));
+    }
 }
 
 float AvgGeneral(float avgCBE, float avgInformatique, float avgECG) {
