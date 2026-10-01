@@ -15,7 +15,10 @@ Subject ecg2;
 Subject infoI2;
 Subject infoC2;
 
+int currentSem = 1;
+
 void initSubjects(){
+    currentSem = 1;
     maths.name = "Maths";
     maths.grades = NULL;
     maths.size = 0;

@@ -22,19 +22,6 @@ typedef struct {
     GtkWidget *vboxSem2;
 } GradeForm;
 
-extern Subject maths;
-extern Subject english;
-extern Subject ecg;
-extern Subject infoI;
-extern Subject infoC;
-extern Subject maths2;
-extern Subject english2;
-extern Subject ecg2;
-extern Subject infoI2;
-extern Subject infoC2;
-
-static int currentSem = 1;
-
 void initSubjects(void);
 Subject *getSubjectByName(const char *name, int sem);
 
@@ -464,6 +451,7 @@ void on_closeSem1(GtkWidget *button, gpointer data) {
 
             refreshUI(form->vboxListSem2, 2);
             gtk_widget_show_all(form->vboxSem2);
+            saveData();
         }
     } else {
         GtkWidget *dialog = gtk_message_dialog_new(
@@ -481,6 +469,56 @@ void on_closeSem1(GtkWidget *button, gpointer data) {
             gtk_widget_set_visible(form->btnCloseSem, FALSE);
         }
     }
+}
+
+void refreshAvg(GtkWidget *vboxAvg) {
+    GList *avgChildren = gtk_container_get_children(GTK_CONTAINER(vboxAvg));
+    GList *ptrAvg = avgChildren;
+    while (ptrAvg != NULL) {
+        gtk_widget_destroy(ptrAvg->data);
+        ptrAvg = ptrAvg->next;
+    }
+    g_list_free(avgChildren);
+
+    GtkWidget *avgHeader = gtk_label_new("Moyenne annuelle");
+    gtk_style_context_add_class(gtk_widget_get_style_context(avgHeader), "column-title");
+    gtk_box_pack_start(GTK_BOX(vboxAvg), avgHeader, FALSE, FALSE, 0);
+
+    float cbe1 = AvgCBE(&maths, &english);
+    float cbe2 = AvgCBE(&maths2, &english2);
+    float cbeYear = round05((cbe1 + cbe2) / 2.0f);
+    float info1 = AvgInformatique(&infoI, &infoC);
+    float info2 = AvgInformatique(&infoI2, &infoC2);
+    float infoYear = round05((info1 + info2) / 2.0f);
+    float ecg1 = Avg(&ecg);
+    float ecg2_val = Avg(&ecg2);
+    float ecgYear = round05((ecg1 + ecg2_val) / 2.0f);
+    float generalYear = AvgGeneral(cbeYear, infoYear, ecgYear);
+
+    gchar *cbeStr = g_strdup_printf("Moyenne CBE annuelle: %.1f", cbeYear);
+    GtkWidget *cbeLabel = gtk_label_new(cbeStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(cbeLabel), "subject-avg");
+    gtk_box_pack_start(GTK_BOX(vboxAvg), cbeLabel, FALSE, FALSE, 15);
+    g_free(cbeStr);
+
+    gchar *infoStr = g_strdup_printf("Moyenne Informatique annuelle: %.1f", infoYear);
+    GtkWidget *infoLabel = gtk_label_new(infoStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(infoLabel), "subject-avg");
+    gtk_box_pack_start(GTK_BOX(vboxAvg), infoLabel, FALSE, FALSE, 15);
+    g_free(infoStr);
+
+    gchar *ecgStr = g_strdup_printf("Moyenne ECG annuelle: %.1f", ecgYear);
+    GtkWidget *ecgLabel = gtk_label_new(ecgStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(ecgLabel), "subject-avg");
+    gtk_box_pack_start(GTK_BOX(vboxAvg), ecgLabel, FALSE, FALSE, 15);
+    g_free(ecgStr);
+
+    gchar *generalStr = g_strdup_printf("Moyenne Générale annuelle: %.1f", generalYear);
+    GtkWidget *generalLabel = gtk_label_new(generalStr);
+    gtk_style_context_add_class(gtk_widget_get_style_context(generalLabel), "general-avg");
+    gtk_box_pack_start(GTK_BOX(vboxAvg), generalLabel, FALSE, FALSE, 15);
+    g_free(generalStr);
+    gtk_widget_show_all(vboxAvg);
 }
 
 void on_addGrade(GtkWidget *button, gpointer data) {
@@ -508,54 +546,7 @@ void on_addGrade(GtkWidget *button, gpointer data) {
     saveData();
     refreshUI(form->vboxList, 1);
     refreshUI(form->vboxListSem2, 2);
-
-    GList *avgChildren = gtk_container_get_children(GTK_CONTAINER(form->vboxAvg));
-    GList *ptrAvg = avgChildren;
-    while (ptrAvg != NULL) {
-        gtk_widget_destroy(ptrAvg->data);
-        ptrAvg = ptrAvg->next;
-    }
-    g_list_free(avgChildren);
-
-    GtkWidget *avgHeader = gtk_label_new("Moyenne annuelle");
-    gtk_style_context_add_class(gtk_widget_get_style_context(avgHeader), "column-title");
-    gtk_box_pack_start(GTK_BOX(form->vboxAvg), avgHeader, FALSE, FALSE, 0);
-
-    float cbe1 = AvgCBE(&maths, &english);
-    float cbe2 = AvgCBE(&maths2, &english2);
-    float cbeYear = round05((cbe1 + cbe2) / 2.0f);
-    float info1 = AvgInformatique(&infoI, &infoC);
-    float info2 = AvgInformatique(&infoI2, &infoC2);
-    float infoYear = round05((info1 + info2) / 2.0f);
-    float ecg1 = Avg(&ecg);
-    float ecg2_val = Avg(&ecg2);
-    float ecgYear = round05((ecg1 + ecg2_val) / 2.0f);
-    float generalYear = AvgGeneral(cbeYear, infoYear, ecgYear);
-
-    gchar *cbeStr = g_strdup_printf("Moyenne CBE annuelle: %.1f", cbeYear);
-    GtkWidget *cbeLabel = gtk_label_new(cbeStr);
-    gtk_style_context_add_class(gtk_widget_get_style_context(cbeLabel), "subject-avg");
-    gtk_box_pack_start(GTK_BOX(form->vboxAvg), cbeLabel, FALSE, FALSE, 15);
-    g_free(cbeStr);
-
-    gchar *infoStr = g_strdup_printf("Moyenne Informatique annuelle: %.1f", infoYear);
-    GtkWidget *infoLabel = gtk_label_new(infoStr);
-    gtk_style_context_add_class(gtk_widget_get_style_context(infoLabel), "subject-avg");
-    gtk_box_pack_start(GTK_BOX(form->vboxAvg), infoLabel, FALSE, FALSE, 15);
-    g_free(infoStr);
-
-    gchar *ecgStr = g_strdup_printf("Moyenne ECG annuelle: %.1f", ecgYear);
-    GtkWidget *ecgLabel = gtk_label_new(ecgStr);
-    gtk_style_context_add_class(gtk_widget_get_style_context(ecgLabel), "subject-avg");
-    gtk_box_pack_start(GTK_BOX(form->vboxAvg), ecgLabel, FALSE, FALSE, 15);
-    g_free(ecgStr);
-
-    gchar *generalStr = g_strdup_printf("Moyenne Générale annuelle: %.1f", generalYear);
-    GtkWidget *generalLabel = gtk_label_new(generalStr);
-    gtk_style_context_add_class(gtk_widget_get_style_context(generalLabel), "general-avg");
-    gtk_box_pack_start(GTK_BOX(form->vboxAvg), generalLabel, FALSE, FALSE, 15);
-    g_free(generalStr);
-    gtk_widget_show_all(form->vboxAvg);
+    refreshAvg(form->vboxAvg);
 }
 
 void create_main_window(int argc, char *argv[]) {
@@ -688,6 +679,27 @@ void create_main_window(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(hbox_columns), vbox_avg, TRUE, TRUE, 0);
 
     gtk_box_pack_start(GTK_BOX(vbox_main), hbox_columns, TRUE, TRUE, 0);
+
+    refreshUI(Sem1Form.vboxList, 1);
+    refreshUI(Sem1Form.vboxListSem2, 2);
+
+    if (currentSem == 2) {
+        g_object_ref(Sem1Form.hboxAddGrade);
+        gtk_container_remove(GTK_CONTAINER(gtk_widget_get_parent(Sem1Form.hboxAddGrade)), Sem1Form.hboxAddGrade);
+        gtk_box_pack_start(GTK_BOX(Sem1Form.vboxSem2), Sem1Form.hboxAddGrade, FALSE, FALSE, 0);
+        gtk_box_reorder_child(GTK_BOX(Sem1Form.vboxSem2), Sem1Form.hboxAddGrade, 1);
+        g_object_unref(Sem1Form.hboxAddGrade);
+
+        g_object_ref(Sem1Form.btnCloseSem);
+        gtk_container_remove(GTK_CONTAINER(gtk_widget_get_parent(Sem1Form.btnCloseSem)), Sem1Form.btnCloseSem);
+        gtk_box_pack_start(GTK_BOX(Sem1Form.vboxSem2), Sem1Form.btnCloseSem, FALSE, FALSE, 5);
+        gtk_box_reorder_child(GTK_BOX(Sem1Form.vboxSem2), Sem1Form.btnCloseSem, 2);
+        g_object_unref(Sem1Form.btnCloseSem);
+
+        gtk_button_set_label(GTK_BUTTON(Sem1Form.btnCloseSem), "Clôturer le semestre 2");
+    }
+
+    refreshAvg(Sem1Form.vboxAvg);
 
     gtk_widget_show_all(window);
     gtk_main();
