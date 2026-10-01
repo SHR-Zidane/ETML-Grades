@@ -405,7 +405,7 @@ void refreshUI(GtkWidget *container, int sem) {
             gtk_style_context_add_class(gtk_widget_get_style_context(labelavgecg), "subject-avg");
             gtk_box_pack_start(GTK_BOX(container), labelavgecg, FALSE, FALSE, 15);
             g_free(avgECG);
-            float avgGeneral = AvgGeneral(AvgCBE(m, e), AvgInformatique(iI, iC), avg);
+            float avgGeneral = AvgGlobal(AvgInformatique(iI, iC), avg, AvgCBE(m, e));
             gchar *generalStr = g_strdup_printf("Moyenne Générale: %0.1f", avgGeneral);
             GtkWidget *labelGeneral = gtk_label_new(generalStr);
             gtk_style_context_add_class(gtk_widget_get_style_context(labelGeneral), "general-avg");
@@ -493,7 +493,7 @@ void refreshAvg(GtkWidget *vboxAvg) {
     float ecg1 = Avg(&ecg);
     float ecg2_val = Avg(&ecg2);
     float ecgYear = round05((ecg1 + ecg2_val) / 2.0f);
-    float generalYear = AvgGeneral(cbeYear, infoYear, ecgYear);
+    float generalYear = AvgGlobal(infoYear, ecgYear, cbeYear);
 
     gchar *cbeStr = g_strdup_printf("Moyenne CBE annuelle: %.1f", cbeYear);
     GtkWidget *cbeLabel = gtk_label_new(cbeStr);

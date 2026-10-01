@@ -2,6 +2,7 @@
 #define REPORT_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 typedef struct {
     char *module;
@@ -41,7 +42,8 @@ Subject *getSubjectByName(const char *name, int sem);
 float AvgOfModules(Subject *subject);
 float AvgCBE(Subject *maths, Subject *english);
 float AvgInformatique(Subject *infoI, Subject *infoC);
-float AvgGeneral(float avgCBE, float avgInformatique, float avgECG);
 void saveData(void);
 void loadData(void);
+void printCalculations(FILE *f);
+void dumpCalculations(const char *logFile);
 #endif
