@@ -30,6 +30,8 @@ typedef struct {
 
 void initSubjects(void);
 Subject *getSubjectByName(const char *name, int sem);
+void removeGrade(Subject *subject, int index);
+void updateGrade(Subject *subject, int index, Grade newGrade);
 
 static const gchar *STYLE_CSS =
     "window, .app-body { background-color: #f3f4f6; }\n"
@@ -99,6 +101,13 @@ static const gchar *STYLE_CSS =
     ".grade-name { font-size: 10.5pt; color: #1f2937; }\n"
     ".coef { font-size: 9pt; color: #6b7280; }\n"
     ".module-name { font-size: 10.5pt; font-weight: 600; color: #1f2937; }\n"
+    ".btn-icon { min-height: 24px; min-width: 24px; padding: 0 5px; border-radius: 6px;"
+    "  background-image: none; box-shadow: none; border: 1px solid transparent;"
+    "  font-size: 10pt; text-shadow: none; }\n"
+    ".btn-icon.edit { color: #2563eb; }\n"
+    ".btn-icon.edit:hover { background-color: #e8eefb; border-color: #bfcdf5; }\n"
+    ".btn-icon.del { color: #b91c1c; }\n"
+    ".btn-icon.del:hover { background-color: #fdecec; border-color: #f1c4c4; }\n"
 
     ".pill { border-radius: 7px; padding: 2px 9px; font-weight: 700; font-size: 10.5pt; }\n"
     ".pill-big { border-radius: 8px; padding: 4px 12px; font-weight: 800; font-size: 13pt; }\n"
@@ -111,6 +120,33 @@ static const gchar *STYLE_CSS =
     ".year-label { font-size: 11pt; font-weight: 600; color: #1f2937; }\n"
     ".year-total { font-size: 12pt; font-weight: 800; color: #111827; }\n"
     ".separator-line { background-color: #e5e7eb; min-height: 1px; }\n";
+
+/* ── Context structs for grade action callbacks ─────────────────────── */
+
+typedef struct {
+    Subject    *subject;
+    int         index;
+    GtkWidget  *vboxList;
+    GtkWidget  *vboxListSem2;
+    GtkWidget  *vboxAvg;
+} GradeCtx;
+
+static GradeCtx *makeCtx(Subject *subject, int index,
+                          GtkWidget *vboxList, GtkWidget *vboxListSem2,
+                          GtkWidget *vboxAvg) {
+    GradeCtx *ctx = g_new(GradeCtx, 1);
+    ctx->subject      = subject;
+    ctx->index        = index;
+    ctx->vboxList     = vboxList;
+    ctx->vboxListSem2 = vboxListSem2;
+    ctx->vboxAvg      = vboxAvg;
+    return ctx;
+}
+
+static void freeGradeCtx(gpointer data, GClosure *closure) {
+    (void)closure;
+    g_free(data);
+}
 
 static void applyStyle(void) {
     GtkCssProvider *provider = gtk_css_provider_new();
@@ -248,7 +284,197 @@ static gchar *formatCoef(const Grade *grade) {
     return g_strdup("");
 }
 
-static void addSimpleGrades(GtkWidget *parent, Subject *subject) {
+/* Forward declarations for refresh functions used by action callbacks */
+void refreshUI(GtkWidget *container, int sem);
+void refreshAvg(GtkWidget *vboxAvg);
+
+static gboolean parseNumber(const gchar *text, float *out) {
+    if (text == NULL || text[0] == '\0') return FALSE;
+
+    gchar *copy = g_strdup(text);
+    g_strdelimit(copy, ",", '.');
+    gchar *end = NULL;
+    double value = g_ascii_strtod(copy, &end);
+    gboolean ok = (end != copy && *end == '\0');
+    g_free(copy);
+
+    if (ok) *out = (float)value;
+    return ok;
+}
+
+static void on_numericInsert(GtkEditable *editable, const gchar *text, gint length,
+                             gint *position, gpointer data) {
+    if (length < 0) length = strlen(text);
+    for (int i = 0; i < length; i++) {
+        if (!g_ascii_isdigit(text[i]) && text[i] != '.' && text[i] != ',') {
+            g_signal_stop_emission_by_name(editable, "insert-text");
+            gtk_widget_error_bell(GTK_WIDGET(editable));
+            return;
+        }
+    }
+}
+
+/* ── Grade action helpers ───────────────────────────────────────────── */
+
+static void refreshBoth(GradeCtx *ctx) {
+    refreshUI(ctx->vboxList, 1);
+    refreshUI(ctx->vboxListSem2, 2);
+    refreshAvg(ctx->vboxAvg);
+}
+
+static void on_deleteGrade(GtkWidget *btn, gpointer data) {
+    GradeCtx *ctx = data;
+
+    GtkWidget *dialog = gtk_message_dialog_new(
+        GTK_WINDOW(gtk_widget_get_toplevel(btn)),
+        GTK_DIALOG_MODAL,
+        GTK_MESSAGE_QUESTION,
+        GTK_BUTTONS_YES_NO,
+        "Supprimer cette note ?"
+    );
+    gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog),
+        "Cette action est irréversible.");
+    gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+
+    if (result == GTK_RESPONSE_YES) {
+        removeGrade(ctx->subject, ctx->index);
+        saveData();
+        refreshBoth(ctx);
+    }
+}
+
+static void on_editGrade(GtkWidget *btn, gpointer data) {
+    GradeCtx *ctx = data;
+    Subject  *subject = ctx->subject;
+    int       idx     = ctx->index;
+    if (idx < 0 || idx >= subject->size) return;
+
+    Grade *g = &subject->grades[idx];
+    gboolean usesModules = (subject->type == 'I' || subject->type == 'C');
+
+    GtkWidget *dialog = gtk_dialog_new_with_buttons(
+        "Modifier la note",
+        GTK_WINDOW(gtk_widget_get_toplevel(btn)),
+        GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+        "Annuler", GTK_RESPONSE_CANCEL,
+        "Enregistrer", GTK_RESPONSE_OK,
+        NULL
+    );
+    gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_OK);
+
+    GtkWidget *content = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
+    gtk_container_set_border_width(GTK_CONTAINER(box), 16);
+    gtk_box_pack_start(GTK_BOX(content), box, FALSE, FALSE, 0);
+
+    /* Module/Thème field */
+    GtkWidget *entryModule = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(entryModule), 40);
+    if (g->module && g->module[0] != '\0')
+        gtk_entry_set_text(GTK_ENTRY(entryModule), g->module);
+    GtkWidget *labelMod = gtk_label_new(usesModules ? "Module" : "Thème");
+    gtk_label_set_xalign(GTK_LABEL(labelMod), 0.0f);
+    gtk_box_pack_start(GTK_BOX(box), labelMod, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entryModule, FALSE, FALSE, 0);
+
+    /* Note field */
+    GtkWidget *entryGrade = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(entryGrade), 4);
+    gchar *gradeStr = g_strdup_printf("%.1f", g->value);
+    gtk_entry_set_text(GTK_ENTRY(entryGrade), gradeStr);
+    g_free(gradeStr);
+    GtkWidget *labelNote = gtk_label_new("Note (1 – 6)");
+    gtk_label_set_xalign(GTK_LABEL(labelNote), 0.0f);
+    gtk_box_pack_start(GTK_BOX(box), labelNote, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entryGrade, FALSE, FALSE, 0);
+
+    /* Coefficient fields */
+    GtkWidget *checkCoef = gtk_check_button_new_with_label("Note pondérée (coefficient)");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkCoef), g->has_coef);
+    gtk_box_pack_start(GTK_BOX(box), checkCoef, FALSE, FALSE, 0);
+
+    GtkWidget *entryCoef = gtk_entry_new();
+    gtk_entry_set_max_length(GTK_ENTRY(entryCoef), 5);
+    if (g->has_coef) {
+        gchar *coefStr = g_strdup_printf("%.1f", g->coef);
+        gtk_entry_set_text(GTK_ENTRY(entryCoef), coefStr);
+        g_free(coefStr);
+    }
+    gtk_widget_set_sensitive(entryCoef, g->has_coef);
+    gtk_box_pack_start(GTK_BOX(box), entryCoef, FALSE, FALSE, 0);
+
+    /* Error feedback label */
+    GtkWidget *labelFeedback = makeLabel("", "feedback-error");
+    gtk_widget_set_no_show_all(labelFeedback, TRUE);
+    gtk_box_pack_start(GTK_BOX(box), labelFeedback, FALSE, FALSE, 0);
+
+    g_signal_connect_swapped(checkCoef, "toggled",
+        G_CALLBACK(gtk_widget_set_sensitive), entryCoef);
+    g_signal_connect(entryGrade, "insert-text", G_CALLBACK(on_numericInsert), NULL);
+    g_signal_connect(entryCoef, "insert-text", G_CALLBACK(on_numericInsert), NULL);
+
+    gtk_widget_show_all(dialog);
+
+    while (TRUE) {
+        gint result = gtk_dialog_run(GTK_DIALOG(dialog));
+        if (result != GTK_RESPONSE_OK) {
+            break;
+        }
+
+        const gchar *moduleText = gtk_entry_get_text(GTK_ENTRY(entryModule));
+        const gchar *gradeText  = gtk_entry_get_text(GTK_ENTRY(entryGrade));
+
+        gchar *strippedModule = g_strstrip(g_strdup(moduleText));
+        gboolean moduleOk = !usesModules || (strippedModule[0] != '\0');
+
+        float value = 0.0f;
+        gboolean gradeOk = parseNumber(gradeText, &value) && value >= 1.0f && value <= 6.0f;
+
+        gboolean weighted = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkCoef));
+        float coef = 1.0f;
+        gboolean coefOk = TRUE;
+        if (weighted) {
+            const gchar *coefText = gtk_entry_get_text(GTK_ENTRY(entryCoef));
+            coefOk = parseNumber(coefText, &coef) && coef > 0.0f && coef <= 100.0f;
+        }
+
+        if (!gradeOk) {
+            gtk_label_set_text(GTK_LABEL(labelFeedback), "La note doit être comprise entre 1 et 6.");
+            gtk_widget_show(labelFeedback);
+            g_free(strippedModule);
+            continue;
+        }
+        if (!moduleOk) {
+            gtk_label_set_text(GTK_LABEL(labelFeedback), "Le numéro de module est obligatoire.");
+            gtk_widget_show(labelFeedback);
+            g_free(strippedModule);
+            continue;
+        }
+        if (weighted && !coefOk) {
+            gtk_label_set_text(GTK_LABEL(labelFeedback), "Le coefficient doit être supérieur à 0.");
+            gtk_widget_show(labelFeedback);
+            g_free(strippedModule);
+            continue;
+        }
+
+        Grade newG;
+        newG.module   = strippedModule;
+        newG.value    = value;
+        newG.has_coef = weighted;
+        newG.coef     = coef;
+        updateGrade(subject, idx, newG);
+        saveData();
+        refreshBoth(ctx);
+        break;
+    }
+
+    gtk_widget_destroy(dialog);
+}
+
+static void addSimpleGrades(GtkWidget *parent, Subject *subject,
+                            GtkWidget *vboxList, GtkWidget *vboxListSem2,
+                            GtkWidget *vboxAvg) {
     if (subject->size == 0) {
         addEmptyMessage(parent);
         return;
@@ -269,7 +495,7 @@ static void addSimpleGrades(GtkWidget *parent, Subject *subject) {
                                ? grade->module
                                : subject->name;
 
-        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
+        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
         addClass(row, "grade-row");
 
         GtkWidget *labelName = makeLabel(name, "grade-name");
@@ -278,15 +504,38 @@ static void addSimpleGrades(GtkWidget *parent, Subject *subject) {
         GtkWidget *labelCoef = makeLabel(coefText, "coef");
         g_free(coefText);
 
+        GtkWidget *btnEdit = gtk_button_new_with_label("✎");
+        addClass(btnEdit, "btn-icon");
+        addClass(btnEdit, "edit");
+        gtk_widget_set_valign(btnEdit, GTK_ALIGN_CENTER);
+        gtk_widget_set_tooltip_text(btnEdit, "Modifier");
+
+        GtkWidget *btnDel = gtk_button_new_with_label("×");
+        addClass(btnDel, "btn-icon");
+        addClass(btnDel, "del");
+        gtk_widget_set_valign(btnDel, GTK_ALIGN_CENTER);
+        gtk_widget_set_tooltip_text(btnDel, "Supprimer");
+
+        GradeCtx *ctxEdit = makeCtx(subject, i, vboxList, vboxListSem2, vboxAvg);
+        GradeCtx *ctxDel  = makeCtx(subject, i, vboxList, vboxListSem2, vboxAvg);
+        g_signal_connect_data(btnEdit, "clicked", G_CALLBACK(on_editGrade),
+                              ctxEdit, freeGradeCtx, 0);
+        g_signal_connect_data(btnDel, "clicked", G_CALLBACK(on_deleteGrade),
+                              ctxDel,  freeGradeCtx, 0);
+
         g_object_set(row, "margin-top", 3, "margin-bottom", 3, NULL);
         gtk_box_pack_start(GTK_BOX(row), labelName, TRUE, TRUE, 0);
         gtk_box_pack_end(GTK_BOX(row), makePill(grade->value, "pill"), FALSE, FALSE, 0);
         gtk_box_pack_end(GTK_BOX(row), labelCoef, FALSE, FALSE, 0);
+        gtk_box_pack_end(GTK_BOX(row), btnDel, FALSE, FALSE, 0);
+        gtk_box_pack_end(GTK_BOX(row), btnEdit, FALSE, FALSE, 0);
         gtk_box_pack_start(GTK_BOX(parent), row, FALSE, FALSE, 0);
     }
 }
 
-static void addModuleGrades(GtkWidget *parent, Subject *subject) {
+static void addModuleGrades(GtkWidget *parent, Subject *subject,
+                            GtkWidget *vboxList, GtkWidget *vboxListSem2,
+                            GtkWidget *vboxAvg) {
     if (subject->size == 0) {
         addEmptyMessage(parent);
         return;
@@ -320,22 +569,26 @@ static void addModuleGrades(GtkWidget *parent, Subject *subject) {
     gtk_box_pack_start(GTK_BOX(parent), head, FALSE, FALSE, 0);
 
     for (int m = 0; m < nModules; m++) {
-        GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12);
-        addClass(row, "grade-row");
-        g_object_set(row, "margin-top", 3, "margin-bottom", 3, NULL);
+        /* Module header row: name + average pill */
+        GtkWidget *modRow = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+        addClass(modRow, "grade-row");
+        g_object_set(modRow, "margin-top", 6, "margin-bottom", 2, NULL);
 
         GtkWidget *labelModule = makeLabel(modules[m], "module-name");
         gtk_label_set_ellipsize(GTK_LABEL(labelModule), PANGO_ELLIPSIZE_END);
-        gtk_box_pack_start(GTK_BOX(row), labelModule, TRUE, TRUE, 0);
-
-        gtk_box_pack_end(GTK_BOX(row), makePill(AvgModule(subject, modules[m]), "pill"),
+        gtk_box_pack_start(GTK_BOX(modRow), labelModule, TRUE, TRUE, 0);
+        gtk_box_pack_end(GTK_BOX(modRow), makePill(AvgModule(subject, modules[m]), "pill"),
                          FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(parent), modRow, FALSE, FALSE, 0);
 
-        GtkWidget *chips = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
-        gtk_widget_set_valign(chips, GTK_ALIGN_CENTER);
+        /* One row per grade within this module */
         for (int i = 0; i < subject->size; i++) {
             Grade *grade = &subject->grades[i];
             if (grade->module == NULL || strcmp(grade->module, modules[m]) != 0) continue;
+
+            GtkWidget *row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 6);
+            g_object_set(row, "margin-top", 2, "margin-bottom", 2,
+                         "margin-start", 14, NULL);
 
             gchar *text;
             if (grade->has_coef) {
@@ -347,11 +600,35 @@ static void addModuleGrades(GtkWidget *parent, Subject *subject) {
             g_free(text);
             addClass(chip, "chip");
             addClass(chip, colorClass(grade->value));
-            gtk_box_pack_start(GTK_BOX(chips), chip, FALSE, FALSE, 0);
-        }
-        gtk_box_pack_end(GTK_BOX(row), chips, FALSE, FALSE, 8);
+            gtk_box_pack_start(GTK_BOX(row), chip, FALSE, FALSE, 0);
 
-        gtk_box_pack_start(GTK_BOX(parent), row, FALSE, FALSE, 0);
+            /* Spacer */
+            GtkWidget *spacer = gtk_label_new("");
+            gtk_box_pack_start(GTK_BOX(row), spacer, TRUE, TRUE, 0);
+
+            GtkWidget *btnEdit = gtk_button_new_with_label("✎");
+            addClass(btnEdit, "btn-icon");
+            addClass(btnEdit, "edit");
+            gtk_widget_set_valign(btnEdit, GTK_ALIGN_CENTER);
+            gtk_widget_set_tooltip_text(btnEdit, "Modifier");
+
+            GtkWidget *btnDel = gtk_button_new_with_label("×");
+            addClass(btnDel, "btn-icon");
+            addClass(btnDel, "del");
+            gtk_widget_set_valign(btnDel, GTK_ALIGN_CENTER);
+            gtk_widget_set_tooltip_text(btnDel, "Supprimer");
+
+            GradeCtx *ctxEdit = makeCtx(subject, i, vboxList, vboxListSem2, vboxAvg);
+            GradeCtx *ctxDel  = makeCtx(subject, i, vboxList, vboxListSem2, vboxAvg);
+            g_signal_connect_data(btnEdit, "clicked", G_CALLBACK(on_editGrade),
+                                  ctxEdit, freeGradeCtx, 0);
+            g_signal_connect_data(btnDel, "clicked", G_CALLBACK(on_deleteGrade),
+                                  ctxDel,  freeGradeCtx, 0);
+
+            gtk_box_pack_end(GTK_BOX(row), btnDel, FALSE, FALSE, 0);
+            gtk_box_pack_end(GTK_BOX(row), btnEdit, FALSE, FALSE, 0);
+            gtk_box_pack_start(GTK_BOX(parent), row, FALSE, FALSE, 0);
+        }
     }
 
     free(modules);
@@ -400,18 +677,30 @@ void refreshUI(GtkWidget *container, int sem) {
     gtk_widget_set_margin_bottom(tiles, 18);
     gtk_box_pack_start(GTK_BOX(container), tiles, FALSE, FALSE, 0);
 
+    /* Retrieve sibling containers stored as object data for CRUD callbacks. */
+    GtkWidget *vboxList     = (GtkWidget *)g_object_get_data(G_OBJECT(container), "vboxList");
+    GtkWidget *vboxListSem2 = (GtkWidget *)g_object_get_data(G_OBJECT(container), "vboxListSem2");
+    GtkWidget *vboxAvg      = (GtkWidget *)g_object_get_data(G_OBJECT(container), "vboxAvg");
+    if (!vboxList)     vboxList     = container;
+    if (!vboxListSem2) vboxListSem2 = container;
+    if (!vboxAvg)      vboxAvg      = container;
+
     GtkWidget *cbe = makeSectionCard(container, "CBE", "Moyenne de Maths et Anglais", avgCBE);
-    addSimpleGrades(makeSubjectBlock(cbe, "Maths", NULL, Avg(m)), m);
-    addSimpleGrades(makeSubjectBlock(cbe, "Anglais", NULL, Avg(e)), e);
+    addSimpleGrades(makeSubjectBlock(cbe, "Maths", NULL, Avg(m)), m,
+                    vboxList, vboxListSem2, vboxAvg);
+    addSimpleGrades(makeSubjectBlock(cbe, "Anglais", NULL, Avg(e)), e,
+                    vboxList, vboxListSem2, vboxAvg);
 
     GtkWidget *info = makeSectionCard(container, "Informatique", "80 % I  +  20 % C", avgInfo);
-    addModuleGrades(makeSubjectBlock(info, "I", "Moyenne des modules I", AvgOfModules(iI)), iI);
-    addModuleGrades(makeSubjectBlock(info, "C", "Moyenne des modules C", AvgOfModules(iC)), iC);
+    addModuleGrades(makeSubjectBlock(info, "I", "Moyenne des modules I", AvgOfModules(iI)), iI,
+                    vboxList, vboxListSem2, vboxAvg);
+    addModuleGrades(makeSubjectBlock(info, "C", "Moyenne des modules C", AvgOfModules(iC)), iC,
+                    vboxList, vboxListSem2, vboxAvg);
 
     GtkWidget *ecgBody = makeSectionCard(container, "ECG", NULL, avgECG);
     GtkWidget *ecgList = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_pack_start(GTK_BOX(ecgBody), ecgList, FALSE, FALSE, 0);
-    addSimpleGrades(ecgList, ec);
+    addSimpleGrades(ecgList, ec, vboxList, vboxListSem2, vboxAvg);
 
     gtk_widget_show_all(container);
 }
@@ -496,32 +785,6 @@ void refreshAvg(GtkWidget *vboxAvg) {
 static gboolean subjectUsesModules(GradeForm *form) {
     const gchar *id = gtk_combo_box_get_active_id(GTK_COMBO_BOX(form->comboSubject));
     return id != NULL && (strcmp(id, "I") == 0 || strcmp(id, "C") == 0);
-}
-
-static gboolean parseNumber(const gchar *text, float *out) {
-    if (text == NULL || text[0] == '\0') return FALSE;
-
-    gchar *copy = g_strdup(text);
-    g_strdelimit(copy, ",", '.');
-    gchar *end = NULL;
-    double value = g_ascii_strtod(copy, &end);
-    gboolean ok = (end != copy && *end == '\0');
-    g_free(copy);
-
-    if (ok) *out = (float)value;
-    return ok;
-}
-
-static void on_numericInsert(GtkEditable *editable, const gchar *text, gint length,
-                             gint *position, gpointer data) {
-    if (length < 0) length = strlen(text);
-    for (int i = 0; i < length; i++) {
-        if (!g_ascii_isdigit(text[i]) && text[i] != '.' && text[i] != ',') {
-            g_signal_stop_emission_by_name(editable, "insert-text");
-            gtk_widget_error_bell(GTK_WIDGET(editable));
-            return;
-        }
-    }
 }
 
 static void setFeedback(GradeForm *form, const char *text, gboolean isError) {
@@ -940,6 +1203,15 @@ void create_main_window(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(body), main, TRUE, TRUE, 0);
 
     form.yearClosed = FALSE;
+
+    /* Store cross-references so refreshUI can build CRUD callbacks */
+    g_object_set_data(G_OBJECT(form.vboxList),     "vboxList",     form.vboxList);
+    g_object_set_data(G_OBJECT(form.vboxList),     "vboxListSem2", form.vboxListSem2);
+    g_object_set_data(G_OBJECT(form.vboxList),     "vboxAvg",      form.vboxAvg);
+    g_object_set_data(G_OBJECT(form.vboxListSem2), "vboxList",     form.vboxList);
+    g_object_set_data(G_OBJECT(form.vboxListSem2), "vboxListSem2", form.vboxListSem2);
+    g_object_set_data(G_OBJECT(form.vboxListSem2), "vboxAvg",      form.vboxAvg);
+
     refreshUI(form.vboxList, 1);
     refreshUI(form.vboxListSem2, 2);
     refreshAvg(form.vboxAvg);

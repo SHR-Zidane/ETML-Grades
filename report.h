@@ -38,6 +38,8 @@ float AvgGlobal(float avgInfo, float avgCG, float avgCBE);
 float round01(float value);
 float round05(float value);
 void addGrade(Subject *subject, Grade grade);
+void removeGrade(Subject *subject, int index);
+void updateGrade(Subject *subject, int index, Grade newGrade);
 Subject *getSubjectByName(const char *name, int sem);
 float AvgOfModules(Subject *subject);
 float AvgCBE(Subject *maths, Subject *english);

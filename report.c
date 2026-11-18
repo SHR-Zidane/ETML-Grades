@@ -186,6 +186,31 @@ void addGrade(Subject *subject, Grade grade) {
     subject->size++;
 }
 
+void removeGrade(Subject *subject, int index) {
+    if (subject == NULL || index < 0 || index >= subject->size) return;
+
+    free(subject->grades[index].module);
+
+    for (int i = index; i < subject->size - 1; i++) {
+        subject->grades[i] = subject->grades[i + 1];
+    }
+    subject->size--;
+
+    if (subject->size == 0) {
+        free(subject->grades);
+        subject->grades = NULL;
+    } else {
+        Grade *temp = realloc(subject->grades, subject->size * sizeof(Grade));
+        if (temp != NULL) subject->grades = temp;
+    }
+}
+
+void updateGrade(Subject *subject, int index, Grade newGrade) {
+    if (subject == NULL || index < 0 || index >= subject->size) return;
+    free(subject->grades[index].module);
+    subject->grades[index] = newGrade;
+}
+
 static void printSubjectDetails(FILE *f, Subject *subject, const char *subjectLabel) {
     fprintf(f, "--- %s (%d note(s)) ---\n", subjectLabel, subject->size);
     if (subject->size == 0) {
