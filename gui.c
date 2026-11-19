@@ -686,9 +686,9 @@ void refreshUI(GtkWidget *container, int sem) {
     if (!vboxAvg)      vboxAvg      = container;
 
     GtkWidget *cbe = makeSectionCard(container, "CBE", "Moyenne de Maths et Anglais", avgCBE);
-    addSimpleGrades(makeSubjectBlock(cbe, "Maths", NULL, Avg(m)), m,
+    addSimpleGrades(makeSubjectBlock(cbe, "Maths", NULL, AvgWeighted(m)), m,
                     vboxList, vboxListSem2, vboxAvg);
-    addSimpleGrades(makeSubjectBlock(cbe, "Anglais", NULL, Avg(e)), e,
+    addSimpleGrades(makeSubjectBlock(cbe, "Anglais", NULL, AvgWeighted(e)), e,
                     vboxList, vboxListSem2, vboxAvg);
 
     GtkWidget *info = makeSectionCard(container, "Informatique", "80 % I  +  20 % C", avgInfo);

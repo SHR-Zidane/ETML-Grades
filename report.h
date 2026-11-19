@@ -32,6 +32,7 @@ extern Subject infoC2;
 
 extern int currentSem;
 float Avg(Subject *subject);
+float AvgWeighted(Subject *subject);
 float AvgModule(Subject *subject, const char *module);
 float AvgInfo(Subject *subject, int nbSubjects);
 float AvgGlobal(float avgInfo, float avgCG, float avgCBE);

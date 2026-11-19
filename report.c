@@ -20,6 +20,22 @@ float Avg(Subject *subject) {
     return round05(sumG / sumC);
 }
 
+/* Moyenne pondérée : chaque note compte avec son coefficient (1 si non pondérée). */
+float AvgWeighted(Subject *subject) {
+    if (subject == NULL || subject->size <= 0) {
+        return 0;
+    }
+    float sumG = 0;
+    float sumC = 0;
+    for (int i = 0; i < subject->size; i++) {
+        float coef = subject->grades[i].has_coef ? subject->grades[i].coef : 1.0f;
+        sumG += subject->grades[i].value * coef;
+        sumC += coef;
+    }
+    if (sumC == 0) return 0;
+    return round05(sumG / sumC);
+}
+
 float AvgModule(Subject *subject, const char *module) {
     if (subject == NULL || subject->size <= 0) {
         return 0;
@@ -153,7 +169,7 @@ float AvgOfModules(Subject *subject) {
 }
 
 float AvgCBE(Subject *maths, Subject *english) {
-    return round01((Avg(maths) + Avg(english)) / 2.0f);
+    return round01((AvgWeighted(maths) + AvgWeighted(english)) / 2.0f);
 }
 
 float AvgInformatique(Subject *infoI, Subject *infoC) {
@@ -211,7 +227,7 @@ void updateGrade(Subject *subject, int index, Grade newGrade) {
     subject->grades[index] = newGrade;
 }
 
-static void printSubjectDetails(FILE *f, Subject *subject, const char *subjectLabel) {
+static void printSubjectDetails(FILE *f, Subject *subject, const char *subjectLabel, bool weighted) {
     fprintf(f, "--- %s (%d note(s)) ---\n", subjectLabel, subject->size);
     if (subject->size == 0) {
         fprintf(f, "  (aucune note)\n");
@@ -251,18 +267,38 @@ static void printSubjectDetails(FILE *f, Subject *subject, const char *subjectLa
 
         float avgModules = AvgOfModules(subject);
         fprintf(f, "  => Moyenne des modules %s: %.1f\n\n", subjectLabel, avgModules);
+    } else if (weighted) {
+        float sumG = 0;
+        float sumC = 0;
+        for (int i = 0; i < subject->size; i++) {
+            Grade *g = &subject->grades[i];
+            float coef = g->has_coef ? g->coef : 1.0f;
+            fprintf(f, "  - [%s] Note: %.1f", g->module ? g->module : "-", g->value);
+            if (g->has_coef) {
+                fprintf(f, " (coef: %.2f)\n", g->coef);
+            } else {
+                fprintf(f, " (coef: 1)\n");
+            }
+            sumG += g->value * coef;
+            sumC += coef;
+        }
+        float avg = AvgWeighted(subject);
+        if (sumC > 0) {
+            fprintf(f, "  -> Somme (note x coef): %.2f, Somme coefs: %.2f | Moyenne ponderee: %.3f | Arrondi (0.5): %.1f\n",
+                    sumG, sumC, sumG / sumC, avg);
+        }
+        fprintf(f, "  => Moyenne %s: %.1f\n\n", subjectLabel, avg);
     } else {
         float sumG = 0;
         for (int i = 0; i < subject->size; i++) {
             Grade *g = &subject->grades[i];
             fprintf(f, "  - [%s] Note: %.1f", g->module ? g->module : "-", g->value);
             if (g->has_coef) {
-                fprintf(f, " (coef: %.2f)\n", g->coef);
-                sumG += g->value;
+                fprintf(f, " (coef: %.2f, non applique)\n", g->coef);
             } else {
                 fprintf(f, " (non ponderee)\n");
-                sumG += g->value;
             }
+            sumG += g->value;
         }
         float avg = Avg(subject);
         fprintf(f, "  -> Somme notes: %.2f, Nb notes: %d | Moyenne simple: %.3f | Arrondi (0.5): %.1f\n",
@@ -287,22 +323,22 @@ static void printSemester(FILE *f, int sem) {
     char label[64];
 
     snprintf(label, sizeof(label), "Maths %s", tag);
-    printSubjectDetails(f, subjMaths, label);
+    printSubjectDetails(f, subjMaths, label, true);
     snprintf(label, sizeof(label), "Anglais %s", tag);
-    printSubjectDetails(f, subjEnglish, label);
+    printSubjectDetails(f, subjEnglish, label, true);
 
-    float avgMaths = Avg(subjMaths);
-    float avgEnglish = Avg(subjEnglish);
+    float avgMaths = AvgWeighted(subjMaths);
+    float avgEnglish = AvgWeighted(subjEnglish);
     float cbe = AvgCBE(subjMaths, subjEnglish);
     fprintf(f, ">>> MOYENNE CBE %s :\n", tag);
-    fprintf(f, "    Calcul : (Avg(Maths%s)=%.1f + Avg(Anglais%s)=%.1f) / 2 = %.2f\n",
+    fprintf(f, "    Calcul : (AvgPonderee(Maths%s)=%.1f + AvgPonderee(Anglais%s)=%.1f) / 2 = %.2f\n",
             suffix, avgMaths, suffix, avgEnglish, (avgMaths + avgEnglish) / 2.0f);
     fprintf(f, "    Arrondi (0.1) : %.1f\n\n", cbe);
 
     snprintf(label, sizeof(label), "Info I %s", tag);
-    printSubjectDetails(f, subjInfoI, label);
+    printSubjectDetails(f, subjInfoI, label, false);
     snprintf(label, sizeof(label), "Info C %s", tag);
-    printSubjectDetails(f, subjInfoC, label);
+    printSubjectDetails(f, subjInfoC, label, false);
 
     float avgI = AvgOfModules(subjInfoI);
     float avgC = AvgOfModules(subjInfoC);
@@ -320,7 +356,7 @@ static void printSemester(FILE *f, int sem) {
     fprintf(f, "    Arrondi (0.1) : %.1f\n\n", info);
 
     snprintf(label, sizeof(label), "ECG %s", tag);
-    printSubjectDetails(f, subjEcg, label);
+    printSubjectDetails(f, subjEcg, label, false);
     float ecg = Avg(subjEcg);
 
     float glob = AvgGlobal(info, ecg, cbe);
