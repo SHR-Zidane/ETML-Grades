@@ -11,9 +11,9 @@ Pour le module P_PROD, mon objectif est de reprendre ce projet là où je l'avai
 - cloture de semestre 
 - calcul annuel
 - Interface utilisateur
+- Finir le CRUD pour les notes
 
 ### Objectifs
-- Finir le CRUD pour les notes
 - Ajouter un moyen d'exporter les notes en json et de pouvoir les importer
 - Corriger les potentielles bugs
 - Faire des tests
